@@ -184,7 +184,7 @@ export default function PresencesDetail() {
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="focus:border-brand-500 focus:ring-brand-500/20 w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 sm:w-auto"
+                        className="focus:border-brand-500 focus:ring-brand-500/20 w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:ring-2 focus:outline-none sm:w-auto dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
                     />
                     <Link to="/presences">
                         <Button variant="outline">

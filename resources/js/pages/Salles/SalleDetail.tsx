@@ -1025,7 +1025,10 @@ export default function SalleDetail() {
                                 {matieres.map((m) => {
                                     const enseignants = teachers.filter((t) =>
                                         t.teaches?.some(
-                                            (x: { subject?: string; roomId?: string }) =>
+                                            (x: {
+                                                subject?: string;
+                                                roomId?: string;
+                                            }) =>
                                                 x.subject === m.name &&
                                                 x.roomId === salle.roomId,
                                         ),
