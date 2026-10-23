@@ -1,0 +1,27 @@
+{
+    "id": "/",
+    "name": "EduCore — Gestion scolaire",
+    "short_name": "EduCore",
+    "description": "Plateforme de gestion scolaire EduCore",
+    "lang": "fr-CM",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#ffffff",
+    "theme_color": "#465fff",
+    "icons": [
+        {
+            "src": "/icons/educore-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/educore-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

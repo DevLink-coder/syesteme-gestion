@@ -1,0 +1,70 @@
+databases:
+    - name: sgcr-db
+      plan: free
+      region: frankfurt
+      databaseName: sgcr
+      user: sgcr
+
+services:
+    - type: web
+      name: sgcr
+      runtime: docker
+      plan: free
+      region: frankfurt
+      dockerfilePath: ./Dockerfile
+      dockerContext: .
+      healthCheckPath: /up
+      autoDeploy: true
+      envVars:
+          - key: APP_NAME
+            value: SGCR
+          - key: APP_ENV
+            value: production
+          - key: APP_DEBUG
+            value: 'false'
+          - key: APP_KEY
+            sync: false
+          - key: APP_LOCALE
+            value: fr
+          - key: APP_FALLBACK_LOCALE
+            value: fr
+          - key: APP_FAKER_LOCALE
+            value: fr_FR
+          - key: LOG_CHANNEL
+            value: stderr
+          - key: LOG_LEVEL
+            value: info
+          - key: DB_CONNECTION
+            value: pgsql
+          - key: DB_URL
+            fromDatabase:
+                name: sgcr-db
+                property: connectionString
+          - key: SESSION_DRIVER
+            value: database
+          - key: SESSION_LIFETIME
+            value: '120'
+          - key: SESSION_ENCRYPT
+            value: 'false'
+          - key: SESSION_SECURE_COOKIE
+            value: 'true'
+          - key: CACHE_STORE
+            value: database
+          - key: QUEUE_CONNECTION
+            value: database
+          - key: FILESYSTEM_DISK
+            value: local
+          - key: MAIL_MAILER
+            value: log
+          - key: MAIL_FROM_ADDRESS
+            value: no-reply@example.com
+          - key: MAIL_FROM_NAME
+            value: SGCR
+          - key: BCRYPT_ROUNDS
+            value: '12'
+          - key: SUPERADMIN_NAME
+            sync: false
+          - key: SUPERADMIN_EMAIL
+            sync: false
+          - key: SUPERADMIN_PASSWORD
+            sync: false
