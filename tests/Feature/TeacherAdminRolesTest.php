@@ -2,9 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Mail\TeacherWelcomeMail;
+use App\Models\Salle;
+use App\Models\SchoolYear;
+use App\Models\Subject;
 use App\Models\User;
+use App\Support\TenantContext;
 use App\Support\TenantDB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class TeacherAdminRolesTest extends TestCase
@@ -29,6 +35,70 @@ class TeacherAdminRolesTest extends TestCase
         $this->assertDatabaseHas('admin_promotions', [
             'promoter_id' => $admin->id,
             'promoted_user_id' => $teacher->id,
+        ]);
+    }
+
+    public function test_creating_a_teacher_queues_the_welcome_email(): void
+    {
+        Mail::fake();
+        $admin = $this->createUser('admin', true, false);
+        $centerId = TenantContext::requireId();
+
+        $year = SchoolYear::create([
+            'code' => '2027-2028',
+            'label' => '2027-2028',
+            'start_date' => '2027-09-01',
+            'end_date' => '2028-06-30',
+            'is_active' => true,
+            'is_archived' => false,
+        ]);
+        $salle = Salle::create([
+            'code' => 'salle-6eme-a-2027',
+            'room_id' => '6emeA',
+            'name' => '6ème A',
+            'school_year_id' => $year->id,
+            'status' => 'active',
+        ]);
+        $subject = Subject::create([
+            'name' => 'Mathématiques',
+            'slug' => 'mathematiques',
+        ]);
+        TenantDB::table('salle_subject')->insert([
+            'salle_id' => $salle->id,
+            'subject_id' => $subject->id,
+            'coefficient' => 4,
+            'is_optional' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/web/teachers', [
+                'name' => 'Mme Touré',
+                'email' => 'mme.toure@college-liberte.cm',
+                'telephone' => '612345678',
+                'teaches' => [
+                    ['room_id' => $salle->room_id, 'subject' => 'Mathématiques'],
+                ],
+            ])
+            ->assertCreated()
+            ->assertJsonPath('mail_queued', true)
+            ->assertJsonPath('mail_sent', false);
+
+        $this->assertDatabaseHas('pending_emails', [
+            'center_id' => $centerId,
+            'email' => 'mme.toure@college-liberte.cm',
+            'mailable_class' => TeacherWelcomeMail::class,
+            'status' => 'pending',
+        ]);
+
+        $this->artisan('app:send-pending-emails')->assertSuccessful();
+
+        Mail::assertSent(TeacherWelcomeMail::class, fn (TeacherWelcomeMail $mail): bool => $mail->hasTo('mme.toure@college-liberte.cm'));
+        $this->assertDatabaseHas('pending_emails', [
+            'center_id' => $centerId,
+            'email' => 'mme.toure@college-liberte.cm',
+            'status' => 'sent',
         ]);
     }
 

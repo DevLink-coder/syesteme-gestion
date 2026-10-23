@@ -53,6 +53,8 @@ services:
             value: smtp-relay.brevo.com
           - key: MAIL_PORT
             value: '2525'
+          - key: MAIL_TIMEOUT
+            value: '10'
           - key: MAIL_SCHEME
             value: smtp
           - key: MAIL_USERNAME

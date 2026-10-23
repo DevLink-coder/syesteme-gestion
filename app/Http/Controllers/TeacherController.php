@@ -10,8 +10,6 @@ use App\Support\TenantDB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class TeacherController extends Controller
 {
@@ -152,19 +150,9 @@ class TeacherController extends Controller
             ];
         }
 
-        $mailSent = false;
+        $mailQueued = false;
         $mailError = null;
         try {
-            Mail::to($request->email)->send(
-                new TeacherWelcomeMail($request->name, $request->email, $plainPassword, $assignmentsForMail)
-            );
-            $mailSent = true;
-            Log::info('Mail enseignant OK vers '.$request->email.' ('.$request->name.')');
-        } catch (\Throwable $e) {
-            $mailError = $e->getMessage();
-            Log::warning('Mail enseignant échoué vers '.$request->email.': '.$e->getMessage());
-            // Stocker en attente pour envoi ultérieur (mode offline)
-            // Le mot de passe est chiffré pour éviter l'exposition en clair
             TenantDB::table('pending_emails')->insert([
                 'email' => $request->email,
                 'mailable_class' => TeacherWelcomeMail::class,
@@ -178,10 +166,17 @@ class TeacherController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $mailQueued = true;
+        } catch (\Throwable $e) {
+            $mailError = $e->getMessage();
         }
 
         $user = TenantDB::table('users')->where('id', $id)->first();
-        $payload = array_merge((array) $user, ['mail_sent' => $mailSent, 'mail_error' => $mailError]);
+        $payload = array_merge((array) $user, [
+            'mail_queued' => $mailQueued,
+            'mail_sent' => false,
+            'mail_error' => $mailError,
+        ]);
 
         return response()->json($payload, 201);
     }

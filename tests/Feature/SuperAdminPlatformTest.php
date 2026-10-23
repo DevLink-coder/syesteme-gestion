@@ -24,7 +24,9 @@ class SuperAdminPlatformTest extends TestCase
             'name' => 'Académie des tests',
             'director_name' => 'Directrice Test',
             'director_email' => 'DIRECTRICE@EXAMPLE.TEST',
-        ])->assertCreated()->assertJsonPath('emailSent', true);
+        ])->assertCreated()
+            ->assertJsonPath('emailQueued', true)
+            ->assertJsonPath('emailSent', false);
 
         $centerId = $response->json('center.id');
         $director = DB::table('users')->where('email', 'directrice@example.test')->first();
@@ -32,6 +34,15 @@ class SuperAdminPlatformTest extends TestCase
         $this->assertSame($centerId, (int) $director->center_id);
         $this->assertSame(1, (int) $director->is_teacher);
         $this->assertSame(0, (int) $director->must_change_password);
+        $this->assertDatabaseHas('pending_emails', [
+            'center_id' => $centerId,
+            'email' => 'directrice@example.test',
+            'mailable_class' => CenterDirectorAccessMail::class,
+            'status' => 'pending',
+        ]);
+
+        $this->artisan('app:send-pending-emails')->assertSuccessful();
+
         $sentPassword = null;
         Mail::assertSent(CenterDirectorAccessMail::class, function (CenterDirectorAccessMail $mail) use (&$sentPassword): bool {
             $sentPassword = $mail->temporaryPassword;
@@ -43,6 +54,15 @@ class SuperAdminPlatformTest extends TestCase
 
             return $mail->hasTo('directrice@example.test');
         });
+        $this->assertDatabaseHas('pending_emails', [
+            'center_id' => $centerId,
+            'email' => 'directrice@example.test',
+            'status' => 'sent',
+        ]);
+        $this->assertSame('{}', DB::table('pending_emails')
+            ->where('center_id', $centerId)
+            ->where('email', 'directrice@example.test')
+            ->value('mailable_data'));
         $this->assertTrue(Hash::check($sentPassword, $director->password));
         $directorUser = User::findOrFail($director->id);
         $this->actingAs($directorUser)->getJson('/web/students')->assertOk();

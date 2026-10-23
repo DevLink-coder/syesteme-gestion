@@ -291,7 +291,12 @@ export default function EnseignantsList() {
                 showToast(message, 'error');
                 return;
             }
-            if (data.mail_sent === true) {
+            if (data.mail_queued === true) {
+                showToast(
+                    `Enseignant créé — mail à ${newEmail.trim()} en cours d’envoi`,
+                    'success',
+                );
+            } else if (data.mail_sent === true) {
                 showToast(
                     `Enseignant créé — mail envoyé à ${newEmail.trim()}`,
                     'success',

@@ -45,6 +45,8 @@ class SendPendingEmails extends Command
                     ->update([
                         'status' => 'sent',
                         'sent_at' => now(),
+                        'mailable_data' => '{}',
+                        'error_message' => null,
                         'updated_at' => now(),
                     ]);
 

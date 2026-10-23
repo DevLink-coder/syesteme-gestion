@@ -9,10 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Throwable;
 
 class SuperAdminController extends Controller
 {
@@ -102,7 +100,7 @@ class SuperAdminController extends Controller
         });
 
         $directorEmail = mb_strtolower(trim($data['director_email']));
-        $pendingEmailId = DB::table('pending_emails')->insertGetId([
+        DB::table('pending_emails')->insert([
             'center_id' => $centerId,
             'email' => $directorEmail,
             'mailable_class' => CenterDirectorAccessMail::class,
@@ -117,35 +115,17 @@ class SuperAdminController extends Controller
             'updated_at' => now(),
         ]);
 
-        $emailSent = false;
-        try {
-            Mail::to($directorEmail)->send(new CenterDirectorAccessMail(
-                trim($data['director_name']),
-                $directorEmail,
-                $temporaryPassword,
-                ['center_name' => trim($data['name'])],
-            ));
-            DB::table('pending_emails')->where('id', $pendingEmailId)->update([
-                'status' => 'sent', 'sent_at' => now(), 'mailable_data' => '{}', 'updated_at' => now(),
-            ]);
-            $emailSent = true;
-        } catch (Throwable $exception) {
-            DB::table('pending_emails')->where('id', $pendingEmailId)->update([
-                'error_message' => Str::limit($exception->getMessage(), 2000), 'updated_at' => now(),
-            ]);
-        }
-
         PlatformAuditLogger::record('center.created', $request->user(), $centerId, $request, 201, [
             'center_name' => trim($data['name']),
             'director_email' => $directorEmail,
-            'welcome_email_sent' => $emailSent,
+            'welcome_email_sent' => false,
+            'welcome_email_queued' => true,
         ]);
 
         return response()->json([
-            'message' => $emailSent
-                ? 'Centre créé et identifiants envoyés au directeur.'
-                : 'Centre créé. L’envoi du courriel a échoué; il sera retenté automatiquement.',
-            'emailSent' => $emailSent,
+            'message' => 'Centre créé. L’envoi des identifiants au directeur est en file d’attente.',
+            'emailQueued' => true,
+            'emailSent' => false,
             'center' => ['id' => $centerId, 'name' => trim($data['name']), 'directorEmail' => $directorEmail],
         ], 201);
     }
