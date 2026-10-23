@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendPendingEmailsJob;
 use App\Mail\CenterDirectorAccessMail;
 use App\Models\User;
 use App\Support\PlatformAuditLogger;
@@ -121,6 +122,8 @@ class SuperAdminController extends Controller
             'welcome_email_sent' => false,
             'welcome_email_queued' => true,
         ]);
+
+        SendPendingEmailsJob::dispatch()->afterResponse();
 
         return response()->json([
             'message' => 'Centre créé. L’envoi des identifiants au directeur est en file d’attente.',

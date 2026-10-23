@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendPendingEmailsJob;
 use App\Mail\CenterDirectorAccessMail;
 use App\Models\User;
 use App\Support\TenantContext;
@@ -9,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class SuperAdminPlatformTest extends TestCase
@@ -18,6 +20,7 @@ class SuperAdminPlatformTest extends TestCase
     public function test_superadmin_can_create_a_center_and_send_director_credentials(): void
     {
         Mail::fake();
+        Queue::fake();
         $superadmin = User::factory()->create(['role' => 'superadmin', 'is_admin' => false, 'is_teacher' => false, 'center_id' => null]);
 
         $response = $this->actingAs($superadmin)->postJson('/web/superadmin/centers', [
@@ -40,6 +43,7 @@ class SuperAdminPlatformTest extends TestCase
             'mailable_class' => CenterDirectorAccessMail::class,
             'status' => 'pending',
         ]);
+        Queue::assertPushed(SendPendingEmailsJob::class);
 
         $this->artisan('app:send-pending-emails')->assertSuccessful();
 

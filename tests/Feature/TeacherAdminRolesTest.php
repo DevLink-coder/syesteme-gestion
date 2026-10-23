@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendPendingEmailsJob;
 use App\Mail\TeacherWelcomeMail;
 use App\Models\Salle;
 use App\Models\SchoolYear;
@@ -11,6 +12,7 @@ use App\Support\TenantContext;
 use App\Support\TenantDB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class TeacherAdminRolesTest extends TestCase
@@ -41,6 +43,7 @@ class TeacherAdminRolesTest extends TestCase
     public function test_creating_a_teacher_queues_the_welcome_email(): void
     {
         Mail::fake();
+        Queue::fake();
         $admin = $this->createUser('admin', true, false);
         $centerId = TenantContext::requireId();
 
@@ -91,6 +94,7 @@ class TeacherAdminRolesTest extends TestCase
             'mailable_class' => TeacherWelcomeMail::class,
             'status' => 'pending',
         ]);
+        Queue::assertPushed(SendPendingEmailsJob::class);
 
         $this->artisan('app:send-pending-emails')->assertSuccessful();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTeacherRequest;
+use App\Jobs\SendPendingEmailsJob;
 use App\Mail\TeacherWelcomeMail;
 use App\Support\CameroonPhoneNumber;
 use App\Support\PersonName;
@@ -169,6 +170,10 @@ class TeacherController extends Controller
             $mailQueued = true;
         } catch (\Throwable $e) {
             $mailError = $e->getMessage();
+        }
+
+        if ($mailQueued) {
+            SendPendingEmailsJob::dispatch()->afterResponse();
         }
 
         $user = TenantDB::table('users')->where('id', $id)->first();
