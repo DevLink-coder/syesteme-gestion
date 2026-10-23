@@ -8,6 +8,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-title" content="EduCore">
         <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/icons/educore-192.png" type="image/png" sizes="192x192">
         <link rel="apple-touch-icon" href="/icons/educore-180.png">

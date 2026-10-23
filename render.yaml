@@ -48,9 +48,19 @@ services:
           - key: FILESYSTEM_DISK
             value: local
           - key: MAIL_MAILER
-            value: log
+            value: smtp
+          - key: MAIL_HOST
+            value: smtp-relay.brevo.com
+          - key: MAIL_PORT
+            value: '2525'
+          - key: MAIL_SCHEME
+            value: smtp
+          - key: MAIL_USERNAME
+            sync: false
+          - key: MAIL_PASSWORD
+            sync: false
           - key: MAIL_FROM_ADDRESS
-            value: no-reply@example.com
+            sync: false
           - key: MAIL_FROM_NAME
             value: SGCR
           - key: BCRYPT_ROUNDS
