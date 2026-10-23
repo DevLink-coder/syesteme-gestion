@@ -144,7 +144,7 @@ export default function SalleDetail() {
     const [isAddMatOpen, setIsAddMatOpen] = useState(false);
     const [newMatName, setNewMatName] = useState('Mathématiques');
     const [customMatName, setCustomMatName] = useState('');
-    const { subjects: mockGlobalSubjects, addSubject } = useSubjects();
+    const { addSubject } = useSubjects();
     const [globalSubjects, setGlobalSubjects] = useState<any[]>([]);
     const [newCoef, setNewCoef] = useState<string>('2');
     const [matError, setMatError] = useState<string | null>(null);
