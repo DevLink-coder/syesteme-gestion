@@ -62,13 +62,14 @@ export default function MatieresList() {
     });
     const [search, setSearch] = useState('');
     const [selectedRoom, setSelectedRoom] = useState('all');
+    const [showArchived, setShowArchived] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [selectedRoomIds, setSelectedRoomIds] = useState<number[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [editing, setEditing] = useState<SubjectItem | null>(null);
     const [editName, setEditName] = useState('');
-    const [confirmDelete, setConfirmDelete] = useState<SubjectItem | null>(
+    const [confirmArchive, setConfirmArchive] = useState<SubjectItem | null>(
         null,
     );
 
@@ -91,6 +92,7 @@ export default function MatieresList() {
         nextPage = 1,
         nextSearch = '',
         nextRoom = 'all',
+        nextShowArchived = showArchived,
     ) => {
         setLoading(true);
         const params = new URLSearchParams({
@@ -99,6 +101,7 @@ export default function MatieresList() {
         });
         if (nextSearch.trim()) params.set('search', nextSearch.trim());
         if (nextRoom !== 'all') params.set('salle_id', nextRoom);
+        if (nextShowArchived) params.set('include_archived', '1');
 
         try {
             const res = await fetch(`/web/subjects?${params.toString()}`, {
@@ -133,8 +136,8 @@ export default function MatieresList() {
 
     useEffect(() => {
         void fetchSalles();
-        void fetchSubjects(page, search, selectedRoom);
-    }, [page, search, selectedRoom]);
+        void fetchSubjects(page, search, selectedRoom, showArchived);
+    }, [page, search, selectedRoom, showArchived]);
 
     const filteredCount = useMemo(() => subjects.length, [subjects]);
     const sortedSubjects = useMemo(
@@ -234,10 +237,10 @@ export default function MatieresList() {
         }
     };
 
-    const handleDelete = async () => {
-        if (!confirmDelete) return;
+    const handleArchive = async () => {
+        if (!confirmArchive) return;
         try {
-            const res = await fetch(`/web/subjects/${confirmDelete.id}`, {
+            const res = await fetch(`/web/subjects/${confirmArchive.id}`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: {
@@ -247,13 +250,36 @@ export default function MatieresList() {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                const message = data.message || 'Erreur lors de la suppression';
+                const message = data.message || 'Erreur lors de l\'archivage';
                 showToast(message, 'error');
                 throw new Error(message);
             }
-            setConfirmDelete(null);
-            showToast('Matière supprimée', 'success');
-            await fetchSubjects(page, search, selectedRoom);
+            setConfirmArchive(null);
+            showToast('Matière archivée', 'success');
+            await fetchSubjects(page, search, selectedRoom, showArchived);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erreur');
+        }
+    };
+
+    const handleRestore = async (subject: SubjectItem) => {
+        try {
+            const res = await fetch(`/web/subjects/${subject.id}/restore`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': getCsrf(),
+                },
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const message = data.message || 'Erreur lors de la restauration';
+                showToast(message, 'error');
+                throw new Error(message);
+            }
+            showToast('Matière désarchivée', 'success');
+            await fetchSubjects(page, search, selectedRoom, showArchived);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur');
         }
@@ -313,10 +339,19 @@ export default function MatieresList() {
                             variant="outline"
                             onClick={() => {
                                 setPage(1);
-                                void fetchSubjects(1, search, selectedRoom);
+                                void fetchSubjects(1, search, selectedRoom, showArchived);
                             }}
                         >
                             Rechercher
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setShowArchived((value) => !value);
+                                setPage(1);
+                            }}
+                        >
+                            {showArchived ? 'Masquer archivées' : 'Afficher archivées'}
                         </Button>
                         <Button onClick={() => setIsCreateOpen(true)}>
                             Nouvelle matière
@@ -358,58 +393,85 @@ export default function MatieresList() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                {sortedSubjects.map((subj) => (
-                                    <TableRow key={subj.id}>
-                                        <TableCell className="py-3 font-medium text-gray-800 dark:text-white">
-                                            {subj.name}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm text-gray-600">
-                                            {subj.salles &&
-                                            subj.salles.length > 0
-                                                ? subj.salles
-                                                      .map((room) => room.name)
-                                                      .join(', ')
-                                                : 'Aucune salle'}
-                                        </TableCell>
-                                        <TableCell className="py-3">
-                                            {subj.salles &&
-                                            subj.salles.length > 0 ? (
-                                                <Badge
-                                                    color="success"
-                                                    size="sm"
-                                                >
-                                                    Associée
-                                                </Badge>
-                                            ) : (
-                                                <Badge color="light" size="sm">
-                                                    Non liée
-                                                </Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditing(subj);
-                                                        setEditName(subj.name);
-                                                        setError(null);
-                                                    }}
-                                                    className="rounded border px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700"
-                                                >
-                                                    Modifier
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        setConfirmDelete(subj)
-                                                    }
-                                                    className="bg-error-50 text-error-600 hover:bg-error-100 rounded px-2 py-1 text-xs"
-                                                >
-                                                    Supprimer
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {sortedSubjects.map((subj) => {
+                                    const isArchived = !!subj.deleted_at;
+
+                                    return (
+                                        <TableRow key={subj.id}>
+                                            <TableCell className="py-3 font-medium text-gray-800 dark:text-white">
+                                                {subj.name}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm text-gray-600">
+                                                {subj.salles &&
+                                                subj.salles.length > 0
+                                                    ? subj.salles
+                                                          .map((room) => room.name)
+                                                          .join(', ')
+                                                    : 'Aucune salle'}
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                {isArchived ? (
+                                                    <Badge
+                                                        color="warning"
+                                                        size="sm"
+                                                    >
+                                                        Archivée
+                                                    </Badge>
+                                                ) : subj.salles &&
+                                                  subj.salles.length > 0 ? (
+                                                    <Badge
+                                                        color="success"
+                                                        size="sm"
+                                                    >
+                                                        Associée
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge
+                                                        color="light"
+                                                        size="sm"
+                                                    >
+                                                        Non liée
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {!isArchived && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditing(subj);
+                                                                setEditName(subj.name);
+                                                                setError(null);
+                                                            }}
+                                                            className="rounded border px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700"
+                                                        >
+                                                            Modifier
+                                                        </button>
+                                                    )}
+                                                    {isArchived ? (
+                                                        <button
+                                                            onClick={() =>
+                                                                void handleRestore(subj)
+                                                            }
+                                                            className="rounded bg-warning-50 px-2 py-1 text-xs text-warning-600 hover:bg-warning-100"
+                                                        >
+                                                            Désarchiver
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() =>
+                                                                setConfirmArchive(subj)
+                                                            }
+                                                            className="bg-error-50 text-error-600 hover:bg-error-100 rounded px-2 py-1 text-xs"
+                                                        >
+                                                            Archiver
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
@@ -565,26 +627,26 @@ export default function MatieresList() {
             </Modal>
 
             <Modal
-                isOpen={!!confirmDelete}
-                onClose={() => setConfirmDelete(null)}
+                isOpen={!!confirmArchive}
+                onClose={() => setConfirmArchive(null)}
                 className="max-w-[420px] p-6"
             >
-                <h3 className="mb-2 font-semibold">Supprimer la matière ?</h3>
+                <h3 className="mb-2 font-semibold">Archiver la matière ?</h3>
                 <p className="mb-4 text-sm text-gray-500">
-                    Supprimer{' '}
+                    L’archivage de{' '}
                     <span className="font-medium text-gray-800">
-                        {confirmDelete?.name}
+                        {confirmArchive?.name}
                     </span>{' '}
-                    ?
+                    la rend indisponible dans les salles jusqu’à sa restauration.
                 </p>
                 <div className="flex justify-end gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => setConfirmDelete(null)}
+                        onClick={() => setConfirmArchive(null)}
                     >
                         Annuler
                     </Button>
-                    <Button onClick={() => void handleDelete()}>
+                    <Button onClick={() => void handleArchive()}>
                         Confirmer
                     </Button>
                 </div>

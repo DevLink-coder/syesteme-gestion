@@ -288,13 +288,13 @@ class SalleController extends Controller
             return response()->json(['message' => 'Salle introuvable'], 404);
         }
         $request->validate(['name' => 'required|string|min:2', 'coefficient' => 'required|numeric|min:0.5']);
-        $subject = TenantDB::table('subjects')->whereNull('deleted_at')->where('name', $request->name)->first();
+        $subject = TenantDB::table('subjects')->where('name', $request->name)->first();
+        if ($subject && ! is_null($subject->deleted_at)) {
+            return response()->json(['message' => 'Cette matière est archivée. Désarchivez-la avant de la réaffecter.'], 409);
+        }
         if (! $subject) {
-            if (TenantDB::table('subjects')->where('name', $request->name)->whereNotNull('deleted_at')->exists()) {
-                return response()->json(['message' => 'Cette matière est supprimée. Restaurez-la avant de la réaffecter.'], 409);
-            }
             $sid = TenantDB::table('subjects')->insertGetId(['name' => $request->name, 'slug' => Str::slug($request->name), 'created_at' => now(), 'updated_at' => now()]);
-            $subject = (object) ['id' => $sid, 'name' => $request->name];
+            $subject = (object) ['id' => $sid, 'name' => $request->name, 'deleted_at' => null];
         }
         $exists = TenantDB::table('salle_subject')->where('salle_id', $salle->id)->where('subject_id', $subject->id)->exists();
         if ($exists) {

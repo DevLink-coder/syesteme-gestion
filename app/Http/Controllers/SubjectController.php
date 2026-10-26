@@ -15,10 +15,15 @@ class SubjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Subject::query();
+        $includeArchived = filter_var($request->query('include_archived', false), FILTER_VALIDATE_BOOLEAN);
+        $query = $includeArchived ? Subject::withTrashed() : Subject::query();
         $search = trim((string) $request->query('search', ''));
         $salleId = $request->query('salle_id');
         $perPage = max(1, min(100, (int) ($request->query('per_page', 10) ?: 10)));
+
+        if (! $includeArchived) {
+            $query->whereNull('deleted_at');
+        }
 
         if ($search !== '') {
             $query->where('name', 'like', "%{$search}%");
@@ -210,6 +215,10 @@ class SubjectController extends Controller
 
     public function destroy(Subject $subject)
     {
+        if ($subject->trashed()) {
+            return response()->json(['message' => 'Cette matière est déjà archivée.'], 409);
+        }
+
         $name = $subject->name;
         $schoolYear = TenantDB::table('salles')
             ->join('school_years', 'school_years.id', '=', 'salles.school_year_id')
@@ -235,7 +244,7 @@ class SubjectController extends Controller
             'notification_content' => 'Suppression de la matière '.$name,
         ]);
 
-        return response()->json(['message' => 'Matière supprimée.']);
+        return response()->json(['message' => 'Matière archivée.']);
     }
 
     public function restore($id)
@@ -252,6 +261,10 @@ class SubjectController extends Controller
 
     public function attachToRooms(Request $request, Subject $subject)
     {
+        if ($subject->trashed()) {
+            return response()->json(['message' => 'Cette matière est archivée. Désarchivez-la avant de l\'affecter à une salle.'], 409);
+        }
+
         $validated = $request->validate([
             'room_ids' => ['required', 'array'],
             'room_ids.*' => ['integer', Rule::exists('salles', 'id')->where('center_id', TenantContext::requireId())->whereNull('deleted_at')],

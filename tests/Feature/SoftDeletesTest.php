@@ -128,4 +128,50 @@ class SoftDeletesTest extends TestCase
 
         $this->assertCount(1, Subject::findOrFail($subject->id)->salles);
     }
+
+    public function test_archived_subject_cannot_be_added_to_a_room_until_restored(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_admin' => true,
+            'is_teacher' => false,
+            'status' => 'active',
+        ]);
+        $now = now();
+        $centerId = \App\Support\TenantContext::id();
+        $yearId = DB::table('school_years')->insertGetId([
+            'code' => '2026-2027-archived-subject',
+            'label' => '2026-2027',
+            'start_date' => '2026-09-01',
+            'end_date' => '2027-06-30',
+            'is_active' => true,
+            'is_archived' => false,
+            'center_id' => $centerId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $salleId = DB::table('salles')->insertGetId([
+            'code' => 'salle-archived-subject',
+            'room_id' => 'secondeArchivedSubject',
+            'name' => 'Seconde Archived Subject',
+            'school_year_id' => $yearId,
+            'status' => 'active',
+            'center_id' => $centerId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $subject = Subject::create([
+            'name' => 'Matière Archivée',
+            'slug' => 'matiere-archivee',
+        ]);
+        $subject->delete();
+
+        $this->actingAs($admin)
+            ->postJson("/web/salles/{$salleId}/matieres", [
+                'name' => 'Matière Archivée',
+                'coefficient' => 2,
+            ])
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'Cette matière est archivée. Désarchivez-la avant de la réaffecter.');
+    }
 }
