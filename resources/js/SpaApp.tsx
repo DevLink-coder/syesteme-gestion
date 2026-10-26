@@ -184,8 +184,12 @@ function TenantDataProviders({ children }: { children: ReactNode }) {
     }
 
     const needsSchoolStructure =
-        /^\/(salles|enseignants|eleves|tarifs|dettes)(\/|$)/.test(pathname);
-    const needsEnrollment = /^\/(eleves|tarifs|dettes)(\/|$)/.test(pathname);
+        /^\/(dashboard|salles|enseignants|eleves|tarifs|dettes)(\/|$)/.test(
+            pathname,
+        );
+    const needsEnrollment = /^\/(dashboard|eleves|tarifs|dettes)(\/|$)/.test(
+        pathname,
+    );
     const needsTeachers = /^\/enseignants\/[^/]+$/.test(pathname);
     const needsEvaluations = /^\/evaluations(\/|$)/.test(pathname);
     const needsSubjects = /^\/salles\/[^/]+$/.test(pathname);
