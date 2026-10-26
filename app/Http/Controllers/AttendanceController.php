@@ -7,6 +7,7 @@ use App\Models\Inscription;
 use App\Models\Salle;
 use App\Models\Student;
 use App\Models\TimetableSlot;
+use App\Support\TenantDB;
 use App\Support\TenantRules;
 use Illuminate\Http\Request;
 
@@ -183,5 +184,100 @@ class AttendanceController extends Controller
             'message' => 'Appel enregistré avec succès.',
             'attendances' => $created,
         ], 201);
+    }
+
+    public function teacherIndex(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => ['nullable', 'date'],
+        ]);
+        $date = $validated['date'] ?? now()->toDateString();
+
+        $attendanceByTeacher = TenantDB::table('teacher_attendances')
+            ->where('date', $date)
+            ->get()
+            ->keyBy('teacher_id');
+
+        $teachers = TenantDB::table('users')
+            ->select('id', 'name', 'email')
+            ->whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->where('is_teacher', true)->orWhere('role', 'teacher');
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(function ($teacher) use ($attendanceByTeacher) {
+                $attendance = $attendanceByTeacher->get($teacher->id);
+
+                return [
+                    'id' => (string) $teacher->id,
+                    'name' => $teacher->name,
+                    'email' => $teacher->email,
+                    'present' => $attendance === null ? null : (bool) $attendance->present,
+                    'markedAt' => $attendance?->updated_at,
+                ];
+            })
+            ->values();
+
+        return response()->json(['date' => $date, 'teachers' => $teachers]);
+    }
+
+    public function storeTeacherAttendance(Request $request)
+    {
+        $validated = $request->validate([
+            'teacher_id' => ['required', TenantRules::exists('users')],
+            'date' => ['required', 'date'],
+            'present' => ['required', 'boolean'],
+        ]);
+
+        $teacher = TenantDB::table('users')
+            ->where('id', $validated['teacher_id'])
+            ->whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->where('is_teacher', true)->orWhere('role', 'teacher');
+            })
+            ->first();
+
+        if (! $teacher) {
+            return response()->json([
+                'message' => 'Cet utilisateur n’est pas un enseignant de ce centre.',
+            ], 422);
+        }
+
+        $attendance = TenantDB::table('teacher_attendances')
+            ->where('teacher_id', $teacher->id)
+            ->where('date', $validated['date'])
+            ->first();
+        $now = now();
+        $values = [
+            'present' => $validated['present'],
+            'marked_by' => $request->user()->id,
+            'updated_at' => $now,
+        ];
+
+        if ($attendance) {
+            TenantDB::table('teacher_attendances')
+                ->where('teacher_id', $teacher->id)
+                ->where('date', $validated['date'])
+                ->update($values);
+        } else {
+            TenantDB::table('teacher_attendances')->insert([
+                ...$values,
+                'teacher_id' => $teacher->id,
+                'date' => $validated['date'],
+                'created_at' => $now,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Présence de l’enseignant enregistrée.',
+            'teacher' => [
+                'id' => (string) $teacher->id,
+                'name' => $teacher->name,
+                'email' => $teacher->email,
+                'present' => (bool) $validated['present'],
+                'markedAt' => $now->toDateTimeString(),
+            ],
+        ]);
     }
 }

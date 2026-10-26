@@ -202,6 +202,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/web/attendances', [AttendanceController::class, 'index'])->name('web.attendances.index');
         Route::get('/web/attendances/{salleId}', [AttendanceController::class, 'show'])->name('web.attendances.show');
         Route::post('/web/attendances', [AttendanceController::class, 'store'])->name('web.attendances.store');
+        Route::get('/web/teacher-attendances', [AttendanceController::class, 'teacherIndex'])->name('web.teacher-attendances.index');
+        Route::post('/web/teacher-attendances', [AttendanceController::class, 'storeTeacherAttendance'])->name('web.teacher-attendances.store');
 
         // Évaluations
         Route::get('/web/evaluations', [EvaluationController::class, 'index'])->name('web.evaluations.index');

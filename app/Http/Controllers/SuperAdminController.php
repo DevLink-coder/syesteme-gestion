@@ -123,7 +123,7 @@ class SuperAdminController extends Controller
             'welcome_email_queued' => true,
         ]);
 
-        SendPendingEmailsJob::dispatch()->afterResponse();
+        SendPendingEmailsJob::dispatch();
 
         return response()->json([
             'message' => 'Centre créé. L’envoi des identifiants au directeur est en file d’attente.',

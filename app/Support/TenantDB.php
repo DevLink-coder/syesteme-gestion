@@ -19,12 +19,14 @@ final class TenantDB
         'teacher_subject', 'admin_promotions', 'pending_emails', 'application_notifications',
     ];
 
+    private const ADDITIONAL_TABLES = ['teacher_attendances'];
+
     public static function table(string $table): TenantTable
     {
         $builder = DB::table($table);
         $baseTable = self::tableName($table);
 
-        if (! in_array($baseTable, self::TABLES, true)) {
+        if (! in_array($baseTable, [...self::TABLES, ...self::ADDITIONAL_TABLES], true)) {
             throw new InvalidArgumentException("Table [{$baseTable}] is not registered for tenant-scoped access.");
         }
 

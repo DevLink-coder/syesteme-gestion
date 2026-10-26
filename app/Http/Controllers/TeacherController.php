@@ -173,7 +173,7 @@ class TeacherController extends Controller
         }
 
         if ($mailQueued) {
-            SendPendingEmailsJob::dispatch()->afterResponse();
+            SendPendingEmailsJob::dispatch();
         }
 
         $user = TenantDB::table('users')->where('id', $id)->first();
