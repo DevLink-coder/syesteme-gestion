@@ -11,11 +11,12 @@ interface StyledSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  controlClassName?: string;
   id?: string;
   disabled?: boolean;
 }
 
-export const StyledSelect: React.FC<StyledSelectProps> = ({ options, value, onChange, placeholder = "Sélectionner", className = "", id, disabled = false }) => {
+export const StyledSelect: React.FC<StyledSelectProps> = ({ options, value, onChange, placeholder = "Sélectionner", className = "", controlClassName = "", id, disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +38,7 @@ export const StyledSelect: React.FC<StyledSelectProps> = ({ options, value, onCh
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((v) => !v)}
-        className={`flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10 text-left text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:dark:bg-gray-800 disabled:dark:text-gray-400 ${selected ? "text-gray-800 dark:text-white/90" : "text-gray-400 dark:text-gray-400"}`}
+        className={`flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10 text-left text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:dark:bg-gray-800 disabled:dark:text-gray-400 ${selected ? "text-gray-800 dark:text-white/90" : "text-gray-400 dark:text-gray-400"} ${controlClassName}`}
       >
         <span className="truncate">{selected ? selected.label : placeholder}</span>
         <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">

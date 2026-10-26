@@ -21,9 +21,11 @@ export function sortAlphabetically<T>(
 export default function AlphabeticalSortControl({
     value,
     onChange,
+    className = '',
 }: {
     value: AlphabeticalDirection;
     onChange: (value: AlphabeticalDirection) => void;
+    className?: string;
 }) {
     return (
         <select
@@ -32,7 +34,7 @@ export default function AlphabeticalSortControl({
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                 onChange(event.target.value as AlphabeticalDirection)
             }
-            className="focus:border-brand-500 focus:ring-brand-500/10 min-w-[130px] rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+            className={`focus:border-brand-500 focus:ring-brand-500/10 min-w-[130px] rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 ${className}`}
         >
             <option value="asc">A → Z</option>
             <option value="desc">Z → A</option>

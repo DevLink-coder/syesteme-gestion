@@ -486,13 +486,14 @@ export default function EnseignantsList() {
             <PageBreadcrumb pageTitle="Enseignants" />
 
             <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-                <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between min-[1025px]:gap-2">
+                    <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center min-[1025px]:gap-2">
                         <div className="w-full min-w-0 flex-shrink lg:max-w-[220px] xl:max-w-xs">
                             <Input
                                 placeholder="Rechercher par nom..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                className="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!text-xs"
                             />
                         </div>
                         <StyledSelect
@@ -506,6 +507,7 @@ export default function EnseignantsList() {
                                 { value: 'expelled', label: 'Renvoyé' },
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[140px] lg:flex-none"
+                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
                         />
                         <StyledSelect
                             value={filterMatiere}
@@ -519,6 +521,7 @@ export default function EnseignantsList() {
                                 })),
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[150px] lg:flex-none"
+                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
                         />
                         <StyledSelect
                             value={filterSalle}
@@ -532,15 +535,17 @@ export default function EnseignantsList() {
                                 })),
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[150px] lg:flex-none"
+                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
                         />
                         <AlphabeticalSortControl
                             value={sortDirection}
                             onChange={setSortDirection}
+                            className="min-[1025px]:!min-w-[110px] min-[1025px]:!px-2 min-[1025px]:!py-1 min-[1025px]:!text-xs"
                         />
                     </div>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
-                        className="w-full shrink-0 whitespace-nowrap xl:w-auto"
+                        className="w-full shrink-0 whitespace-nowrap xl:w-auto min-[1025px]:!px-3 min-[1025px]:!py-1.5 min-[1025px]:!text-xs"
                     >
                         Ajouter un enseignant
                     </Button>
@@ -667,12 +672,12 @@ export default function EnseignantsList() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="py-3 text-right">
-                                                <div className="flex justify-end gap-0.5">
+                                                <div className="flex justify-end gap-0.5 min-[1025px]:gap-0">
                                                     <button
                                                         onClick={() =>
                                                             openTeacherEdit(t)
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Modifier
                                                     </button>
@@ -690,7 +695,7 @@ export default function EnseignantsList() {
                                                                 ? 'Vous ne pouvez pas destituer l’admin qui vous a promu.'
                                                                 : undefined
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
                                                     >
                                                         {t.is_admin
                                                             ? 'Destituer'
@@ -698,7 +703,7 @@ export default function EnseignantsList() {
                                                     </button>
                                                     <Link
                                                         to={`/enseignants/${t.id}`}
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Voir
                                                     </Link>
@@ -715,7 +720,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
                                                                 >
                                                                     Suspendre
                                                                 </button>
@@ -729,7 +734,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
                                                                 >
                                                                     Renvoyer
                                                                 </button>
