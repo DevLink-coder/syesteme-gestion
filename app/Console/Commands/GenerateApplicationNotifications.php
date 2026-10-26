@@ -184,7 +184,7 @@ class GenerateApplicationNotifications extends Command
             }
 
             $message = sprintf(
-                '%s a une échéance de paiement aujourd’hui. Solde dû : %s FCFA (%s).',
+                '%s a une échéance de paiement aujourd’hui. Montant non payé : %s FCFA (%s).',
                 $inscription->student_name,
                 number_format($balance, 0, ',', ' '),
                 $inscription->salle_name,

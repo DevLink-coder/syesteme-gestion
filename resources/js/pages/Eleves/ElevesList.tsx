@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import AlphabeticalSortControl, {
     sortAlphabetically,
     type AlphabeticalDirection,
@@ -19,15 +19,14 @@ import Input from '../../components/form/input/InputField';
 import StyledSelect from '../../components/ui/select/StyledSelect';
 import { useEnrollment, formatFCFA } from '../../context/EnrollmentContext';
 import { useSchoolStructure } from '../../context/SchoolStructureContext';
-import { buildEcheancier } from '../../lib/echeancier';
+import { buildEcheancier, getCurrentMonthEcheance } from '../../lib/echeancier';
 
 export default function ElevesList() {
+    const [searchParams] = useSearchParams();
     const {
         inscriptions,
         students,
         tarifs,
-        getSoldeForInscription,
-        getTotalDuForInscription,
         getInscriptionActuelle,
         getStudentById,
         getPaymentsForInscription,
@@ -48,9 +47,15 @@ export default function ElevesList() {
     }));
 
     const [search, setSearch] = useState('');
-    const [filterSalle, setFilterSalle] = useState<string>('all');
-    const [filterStatut, setFilterStatut] = useState<string>('all');
-    const [filterSolde, setFilterSolde] = useState<string>('all');
+    const [filterSalle, setFilterSalle] = useState<string>(
+        searchParams.get('salle') || 'all',
+    );
+    const [filterStatut, setFilterStatut] = useState<string>(
+        searchParams.get('statut') || 'all',
+    );
+    const [filterSolde, setFilterSolde] = useState<string>(
+        searchParams.get('paiement') || 'all',
+    );
     const [sortDirection, setSortDirection] =
         useState<AlphabeticalDirection>('asc');
     const [page, setPage] = useState(1);
@@ -67,9 +72,6 @@ export default function ElevesList() {
                 const schoolYear = schoolYears.find(
                     (y) => y.id === ins.schoolYearId,
                 );
-                const solde = getSoldeForInscription(ins.id);
-                const totalDu = getTotalDuForInscription(ins.id);
-                const totalPaye = Math.max(0, totalDu - solde);
                 const tarif = tarifs.find((t) => t.id === ins.tarifId);
                 const ech = buildEcheancier(
                     {
@@ -80,15 +82,15 @@ export default function ElevesList() {
                     tarif,
                     getPaymentsForInscription(ins.id),
                 );
+                const monthlyEcheance = getCurrentMonthEcheance(ech);
                 return {
                     student,
                     ins,
                     salle,
                     schoolYear,
-                    solde,
-                    totalPaye,
-                    totalDu,
+                    totalPaye: ech.totalPaye,
                     ech,
+                    monthlyEcheance,
                 };
             })
             .filter(Boolean) as Array<{
@@ -96,10 +98,11 @@ export default function ElevesList() {
             ins: NonNullable<ReturnType<typeof getInscriptionActuelle>>;
             salle: (typeof salles)[0] | undefined;
             schoolYear: (typeof schoolYears)[0] | undefined;
-            solde: number;
             totalPaye: number;
-            totalDu: number;
             ech: ReturnType<typeof buildEcheancier>;
+            monthlyEcheance:
+                | ReturnType<typeof getCurrentMonthEcheance>
+                | undefined;
         }>;
     }, [
         inscriptions,
@@ -107,8 +110,6 @@ export default function ElevesList() {
         getInscriptionActuelle,
         salles,
         schoolYears,
-        getSoldeForInscription,
-        getTotalDuForInscription,
         tarifs,
         getPaymentsForInscription,
     ]);
@@ -140,20 +141,21 @@ export default function ElevesList() {
             );
         if (filterStatut !== 'all')
             list = list.filter(({ ins }) => ins.statut === filterStatut);
-        if (filterSolde === 'aucun')
-            list = list.filter(({ solde }) => solde === 0);
-        else if (filterSolde === 'dû')
-            list = list.filter(({ solde }) => solde > 0);
-        else if (filterSolde === 'partiel')
+        if (filterSolde === 'partiel')
             list = list.filter(
-                ({ solde, totalDu, totalPaye }) =>
-                    solde > 0 && totalPaye > 0 && solde < totalDu,
+                ({ monthlyEcheance }) =>
+                    monthlyEcheance?.status === 'partielle',
             );
         else if (filterSolde === 'paye')
-            list = list.filter(({ totalPaye }) => totalPaye > 0);
+            list = list.filter(
+                ({ monthlyEcheance }) => monthlyEcheance?.status === 'payee',
+            );
         else if (filterSolde === 'nonpaye')
             list = list.filter(
-                ({ totalPaye, solde }) => totalPaye === 0 && solde > 0,
+                ({ monthlyEcheance }) =>
+                    monthlyEcheance !== undefined &&
+                    monthlyEcheance.status !== 'payee' &&
+                    monthlyEcheance.status !== 'partielle',
             );
         return sortAlphabetically(
             list,
@@ -276,17 +278,12 @@ export default function ElevesList() {
                                         setFilterSolde(v);
                                         setPage(1);
                                     }}
-                                    placeholder="Solde"
+                                    placeholder="Paiement du mois"
                                     options={[
                                         {
                                             value: 'all',
-                                            label: 'Tous les soldes',
+                                            label: 'Tous les paiements',
                                         },
-                                        {
-                                            value: 'aucun',
-                                            label: 'Aucun solde',
-                                        },
-                                        { value: 'dû', label: 'Solde dû' },
                                         {
                                             value: 'partiel',
                                             label: 'Partiellement payé',
@@ -358,13 +355,13 @@ export default function ElevesList() {
                                     isHeader
                                     className="text-theme-xs py-3 text-left font-medium text-gray-500"
                                 >
-                                    Déjà payé
+                                    Total versé
                                 </TableCell>
                                 <TableCell
                                     isHeader
                                     className="text-theme-xs py-3 text-left font-medium text-gray-500"
                                 >
-                                    Dû ce mois
+                                    Paiement du mois
                                 </TableCell>
                                 <TableCell
                                     isHeader
@@ -395,7 +392,7 @@ export default function ElevesList() {
                                         salle,
                                         schoolYear,
                                         totalPaye,
-                                        ech,
+                                        monthlyEcheance,
                                     }) => (
                                         <TableRow
                                             key={student.id}
@@ -437,20 +434,46 @@ export default function ElevesList() {
                                                 {formatFCFA(totalPaye)}
                                             </TableCell>
                                             <TableCell className="py-3 text-sm font-medium">
-                                                {ech.isClean ? (
-                                                    <span className="text-success-600">
-                                                        Clean
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-error-600">
-                                                        {formatFCFA(
-                                                            ech.currentDue,
+                                                {monthlyEcheance ? (
+                                                    <>
+                                                        <span
+                                                            className={
+                                                                monthlyEcheance.status ===
+                                                                'payee'
+                                                                    ? 'text-success-600'
+                                                                    : monthlyEcheance.status ===
+                                                                        'partielle'
+                                                                      ? 'text-warning-600'
+                                                                      : 'text-error-600'
+                                                            }
+                                                        >
+                                                            {monthlyEcheance.status ===
+                                                            'payee'
+                                                                ? 'Payé'
+                                                                : monthlyEcheance.status ===
+                                                                    'partielle'
+                                                                  ? 'Partiellement payé'
+                                                                  : 'Non payé'}
+                                                        </span>
+                                                        {monthlyEcheance.status !==
+                                                            'payee' && (
+                                                            <span className="ml-2 text-gray-500">
+                                                                {formatFCFA(
+                                                                    monthlyEcheance.solde,
+                                                                )}
+                                                            </span>
                                                         )}
+                                                        <div className="text-xs font-normal text-gray-400">
+                                                            {
+                                                                monthlyEcheance.label
+                                                            }
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-gray-500">
+                                                        Aucune mensualité prévue
                                                     </span>
                                                 )}
-                                                <div className="text-xs font-normal text-gray-400">
-                                                    {ech.currentLabel}
-                                                </div>
                                             </TableCell>
                                             <TableCell className="py-3 text-sm text-gray-500">
                                                 {ins.dateInscription}

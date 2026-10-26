@@ -576,7 +576,7 @@ class EnrollmentDataController extends Controller
         $solde = max(0, $due - $paid);
         $amount = (int) round($validated['amount']);
         if ($amount > $solde) {
-            return response()->json(['message' => 'Montant supérieur au solde dû ('.$solde.').'], 422);
+            return response()->json(['message' => 'Montant supérieur au montant restant à payer ('.$solde.').'], 422);
         }
 
         $newSolde = $solde - $amount;

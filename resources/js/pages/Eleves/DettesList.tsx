@@ -184,11 +184,11 @@ export default function DettesList() {
                         <StyledSelect
                             value={filterSolde}
                             onChange={setFilterSolde}
-                            placeholder="Tous les soldes"
+                            placeholder="Tous les paiements"
                             options={[
                                 { value: 'all', label: 'Tous' },
-                                { value: 'zero', label: 'Solde = 0' },
-                                { value: 'dû', label: 'Solde > 0' },
+                                { value: 'zero', label: 'Tout payé' },
+                                { value: 'dû', label: 'Reste à payer' },
                                 { value: 'partiel', label: 'Partiel' },
                                 { value: 'nonpaye', label: 'Non payé' },
                             ]}
@@ -235,7 +235,7 @@ export default function DettesList() {
                                     isHeader
                                     className="text-theme-xs py-2 text-left font-medium text-gray-500"
                                 >
-                                    Solde
+                                    Reste à payer
                                 </TableCell>
                                 <TableCell
                                     isHeader

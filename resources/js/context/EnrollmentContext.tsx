@@ -1076,7 +1076,7 @@ export const EnrollmentProvider: React.FC<{ children: React.ReactNode }> = ({
             if (data.amount > soldeBefore)
                 return {
                     ok: false,
-                    error: `Montant supérieur au solde dû (${formatFCFA(soldeBefore)}).`,
+                    error: `Montant supérieur au montant restant à payer (${formatFCFA(soldeBefore)}).`,
                     newSolde: soldeBefore,
                 };
             let payload: any;

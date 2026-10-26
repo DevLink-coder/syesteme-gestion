@@ -11,7 +11,6 @@ const fallbackDashboard: DashboardData = {
     ca: 0,
     monthly: [],
     recent: [],
-    debtors: [],
     attendanceTrend: [],
     notifications: [],
 };

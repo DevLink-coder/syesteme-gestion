@@ -2,7 +2,6 @@ import PageMeta from '../components/common/PageMeta';
 import PageBreadcrumb from '../components/common/PageBreadCrumb';
 import UserMetaCard from '../components/UserProfile/UserMetaCard';
 import UserInfoCard from '../components/UserProfile/UserInfoCard';
-import UserAddressCard from '../components/UserProfile/UserAddressCard';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserProfiles() {
@@ -25,7 +24,6 @@ export default function UserProfiles() {
                 <div className="space-y-6">
                     <UserMetaCard />
                     <UserInfoCard />
-                    <UserAddressCard />
                 </div>
             </div>
         </>

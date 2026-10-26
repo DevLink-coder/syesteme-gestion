@@ -221,3 +221,15 @@ export function buildEcheancier(
         nextDueAmount: firstUnpaid ? firstUnpaid.solde : 0,
     };
 }
+
+export function getCurrentMonthEcheance(
+    echeancier: Echeancier,
+    today: string = todayStr(),
+): Echeance | undefined {
+    const currentMonth = today.slice(0, 7);
+
+    return echeancier.cycles.find(
+        (cycle) =>
+            cycle.kind === 'mois' && cycle.dueDate.slice(0, 7) === currentMonth,
+    );
+}

@@ -73,21 +73,6 @@ class DashboardController extends Controller
             ->get()
             ->map(fn ($r) => ['label' => $r->label, 'rate' => (float) $r->rate]);
 
-        $debtors = TenantDB::table('payments as p')
-            ->join('students as s', 's.id', '=', 'p.student_id')
-            ->join('inscriptions as i', 'i.id', '=', 'p.inscription_id')
-            ->join('salles as sal', 'sal.id', '=', 'i.salle_id')
-            ->select('s.id as studentId', 's.name as studentName', 'sal.name as roomLabel', DB::raw('MAX(p.solde_du) as soldeDu'), DB::raw('MAX(i.statut) as enrollmentStatus'))
-            ->where('p.solde_du', '>', 0)
-            ->whereNull('s.deleted_at')
-            ->whereNull('p.deleted_at')
-            ->whereNull('i.deleted_at')
-            ->whereNull('sal.deleted_at')
-            ->groupBy('s.id', 's.name', 'sal.name')
-            ->orderByDesc('soldeDu')
-            ->limit(5)
-            ->get();
-
         $notificationLogs = TenantDB::table('notification_logs')
             ->orderByDesc('sent_at')
             ->limit(5)
@@ -102,7 +87,6 @@ class DashboardController extends Controller
             'ca' => (int) ($ca ?? 0),
             'monthly' => $monthly,
             'recent' => $recentPayments,
-            'debtors' => $debtors,
             'attendanceTrend' => $attendanceTrend,
             'notifications' => $notificationLogs,
         ];

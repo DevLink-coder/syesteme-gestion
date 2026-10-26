@@ -395,15 +395,16 @@ export default function EleveDetail() {
                             return (
                                 <div>
                                     <p className="text-xs text-gray-500">
-                                        Dû ce mois ({ech.currentLabel})
+                                        Paiement du mois ({ech.currentLabel})
                                     </p>
                                     <p className="font-semibold">
                                         {ech.isClean ? (
                                             <span className="text-success-600">
-                                                Clean — rien à payer
+                                                Payé — rien à payer
                                             </span>
                                         ) : (
                                             <span className="text-error-600">
+                                                Non payé —{' '}
                                                 {formatFCFA(ech.currentDue)}
                                             </span>
                                         )}
@@ -546,7 +547,7 @@ export default function EleveDetail() {
                                         isHeader
                                         className="text-theme-xs py-2 text-left font-medium text-gray-500"
                                     >
-                                        Solde
+                                        Reste à payer
                                     </TableCell>
                                     <TableCell
                                         isHeader
@@ -664,11 +665,11 @@ export default function EleveDetail() {
                                     ({ins.statut}){' '}
                                     {ech.isClean ? (
                                         <span className="text-success-600">
-                                            — Clean ce mois
+                                            — Payé ce mois
                                         </span>
                                     ) : (
                                         <span className="text-error-600">
-                                            — Dû ce mois :{' '}
+                                            — Non payé ce mois :{' '}
                                             {formatFCFA(ech.currentDue)} (
                                             {ech.currentLabel})
                                         </span>
@@ -784,7 +785,7 @@ export default function EleveDetail() {
                                         salles.find((s) => s.id === ins.salleId)
                                             ?.name
                                     }{' '}
-                                    ({ins.statut}) — Solde{' '}
+                                    ({ins.statut}) — Reste à payer{' '}
                                     {formatFCFA(getSoldeForInscription(ins.id))}
                                 </p>
                                 <div className="overflow-x-auto">
@@ -1035,15 +1036,20 @@ export default function EleveDetail() {
                                 </h3>
                                 <div className="rounded-lg bg-gray-50 p-3 text-sm dark:bg-gray-800">
                                     <p>
-                                        Dû ce mois ({ech.currentLabel}) :{' '}
+                                        Montant restant à payer (
+                                        {ech.currentLabel}) :{' '}
                                         <span className="font-semibold">
                                             {formatFCFA(ech.currentDue)}
                                         </span>{' '}
                                         {ech.isClean ? (
                                             <span className="text-success-600 font-medium">
-                                                — Clean, rien à payer ce mois
+                                                — Rien à payer
                                             </span>
-                                        ) : null}
+                                        ) : (
+                                            <span className="text-error-600 font-medium">
+                                                — Non payé
+                                            </span>
+                                        )}
                                     </p>
                                     <p className="text-xs text-gray-500">
                                         Dont frais d'inscription :{' '}
@@ -1105,7 +1111,7 @@ export default function EleveDetail() {
                                             },
                                             {
                                                 value: 'total',
-                                                label: `Tout solder — ${formatFCFA(solde)}`,
+                                                label: `Payer le reste — ${formatFCFA(solde)}`,
                                             },
                                         ]}
                                     />
@@ -1129,7 +1135,7 @@ export default function EleveDetail() {
                                     />
                                     <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
                                         <span>
-                                            Nouveau solde :{' '}
+                                            Reste après paiement :{' '}
                                             {formatFCFA(
                                                 Math.max(
                                                     0,
@@ -1152,7 +1158,7 @@ export default function EleveDetail() {
                                                 }
                                                 className="text-brand-600 hover:underline"
                                             >
-                                                Tout solder le reste
+                                                Payer tout le reste
                                             </button>
                                         )}
                                     </div>
@@ -1363,7 +1369,7 @@ export default function EleveDetail() {
                 <p className="mb-3 text-sm text-gray-500">
                     Copiez ce lien et envoyez-le au parent (WhatsApp, email,
                     SMS). Le lien contient un token simulé et donne accès au
-                    bulletin et au solde du compte.
+                    bulletin et à la situation de paiement.
                 </p>
                 <div className="mb-3 rounded-lg border bg-gray-50 p-3 font-mono text-sm break-all text-gray-800 dark:border-gray-700 dark:bg-gray-800">
                     {parentShareLink ||
