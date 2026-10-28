@@ -16,12 +16,10 @@ import {
 import { Modal } from '../../components/ui/modal';
 import { useEnrollment, formatFCFA } from '../../context/EnrollmentContext';
 import { useSchoolStructure } from '../../context/SchoolStructureContext';
+import { useEvaluations } from '../../context/EvaluationsContext';
+import { useAttendance } from '../../context/AttendanceContext';
 import { buildEcheancier } from '../../lib/echeancier';
 import { useAlertModal } from '../../context/AlertModalContext';
-
-const evaluations: any[] = [];
-const attendance: any[] = [];
-const ROOM_LABELS: Record<string, string> = {};
 
 export default function EleveDetail() {
     const { id } = useParams();
@@ -44,6 +42,9 @@ export default function EleveDetail() {
         deleteStudent,
     } = useEnrollment();
     const { salles: ctxSalles, schoolYears: ctxYears } = useSchoolStructure();
+    const { evaluations, loadEvaluations } = useEvaluations();
+    const { loadAttendance, getSalleAttendance, sallesAttendance } = useAttendance();
+    const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
 
     const salles = ctxSalles.map((s: any) => ({
         id: String(s.id),
@@ -87,6 +88,38 @@ export default function EleveDetail() {
                 : String(activeYearId),
         );
     }, [activeYearId]);
+
+    useEffect(() => {
+        void loadEvaluations();
+    }, [loadEvaluations]);
+
+    useEffect(() => {
+        if (!student) return;
+        const loadStudentAttendance = async () => {
+            const allRecords: any[] = [];
+            for (const ins of inscriptions) {
+                try {
+                    const salleData = await getSalleAttendance(ins.salleId);
+                    if (salleData?.students) {
+                        const studentRecords = salleData.students
+                            .filter((s: any) => s.id === student.id)
+                            .map((s: any) => ({
+                                id: `${s.id}-${salleData.date}`,
+                                studentId: s.id,
+                                date: salleData.date,
+                                roomId: salleData.salle.roomId,
+                                present: s.present,
+                            }));
+                        allRecords.push(...studentRecords);
+                    }
+                } catch (e) {
+                    console.error('Failed to load attendance for salle:', ins.salleId, e);
+                }
+            }
+            setAttendanceRecords(allRecords);
+        };
+        void loadStudentAttendance();
+    }, [student, inscriptions, getSalleAttendance]);
 
     const [isReinsOpen, setIsReinsOpen] = useState(false);
     const [reinsSalle, setReinsSalle] = useState('');
@@ -949,7 +982,7 @@ export default function EleveDetail() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y">
-                                {attendance
+                                {attendanceRecords
                                     .filter((a) => a.studentId === student.id)
                                     .map((a) => (
                                         <TableRow key={a.id}>
@@ -957,9 +990,7 @@ export default function EleveDetail() {
                                                 {a.date}
                                             </TableCell>
                                             <TableCell className="py-2">
-                                                {(ROOM_LABELS as any)[
-                                                    a.roomId || ''
-                                                ] || a.roomId}{' '}
+                                                {salles.find((s) => s.roomId === a.roomId)?.name || a.roomId}{' '}
                                                 •{' '}
                                                 {inscriptions.find(
                                                     (ins) =>
@@ -993,7 +1024,7 @@ export default function EleveDetail() {
                             </TableBody>
                         </Table>
                     </div>
-                    {attendance.filter((a) => a.studentId === student.id)
+                    {attendanceRecords.filter((a) => a.studentId === student.id)
                         .length === 0 && (
                         <p className="text-sm text-gray-500">
                             Aucune présence.
