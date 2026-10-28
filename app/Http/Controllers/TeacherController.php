@@ -10,6 +10,7 @@ use App\Support\PersonName;
 use App\Support\TenantDB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class TeacherController extends Controller
@@ -320,7 +321,48 @@ class TeacherController extends Controller
             'name' => 'sometimes|required|string|min:3',
             'email' => 'sometimes|required|email|unique:users,email,'.$user->id,
             'telephone' => ['nullable', 'string', 'size:9', 'regex:/^6\d{8}$/'],
+            'teaches' => 'sometimes|required|array|min:1',
+            'teaches.*.room_id' => 'required_with:teaches|string',
+            'teaches.*.subject' => 'required_with:teaches|string',
         ]);
+
+        $assignments = [];
+        if ($request->has('teaches')) {
+            foreach ($request->input('teaches') as $teaching) {
+                $salle = TenantDB::table('salles')
+                    ->whereNull('deleted_at')
+                    ->where('room_id', $teaching['room_id'])
+                    ->first();
+                if (! $salle) {
+                    return response()->json(['message' => "Salle {$teaching['room_id']} introuvable."], 422);
+                }
+                if ($salle->status === 'archivée') {
+                    return response()->json(['message' => "La salle {$teaching['room_id']} est archivée et ne peut pas recevoir d'enseignant."], 422);
+                }
+
+                $subject = TenantDB::table('subjects')
+                    ->whereNull('deleted_at')
+                    ->where('name', $teaching['subject'])
+                    ->first();
+                if (! $subject) {
+                    return response()->json(['message' => "Matière {$teaching['subject']} introuvable."], 422);
+                }
+
+                $assignment = TenantDB::table('salle_subject')
+                    ->where('salle_id', $salle->id)
+                    ->where('subject_id', $subject->id)
+                    ->first();
+                if (! $assignment) {
+                    return response()->json(['message' => "La matière {$teaching['subject']} n'est pas enseignée en {$teaching['room_id']}."], 422);
+                }
+
+                $assignments[] = [
+                    'subject_id' => $subject->id,
+                    'room_id' => $salle->room_id,
+                    'coefficient' => $assignment->coefficient,
+                ];
+            }
+        }
 
         $data = [];
         if ($request->filled('name')) {
@@ -334,7 +376,21 @@ class TeacherController extends Controller
         }
         $data['updated_at'] = now();
 
-        TenantDB::table('users')->where('id', $user->id)->update($data);
+        DB::transaction(function () use ($data, $user, $request, $assignments) {
+            TenantDB::table('users')->where('id', $user->id)->update($data);
+
+            if ($request->has('teaches')) {
+                TenantDB::table('teacher_subject')->where('user_id', $user->id)->delete();
+                foreach ($assignments as $assignment) {
+                    TenantDB::table('teacher_subject')->insert([
+                        'user_id' => $user->id,
+                        ...$assignment,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        });
 
         return response()->json(['message' => 'Enseignant mis à jour']);
     }

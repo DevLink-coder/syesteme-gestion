@@ -25,6 +25,7 @@ interface SubjectItem {
     slug?: string;
     description?: string | null;
     coefficient?: number | null;
+    deleted_at?: string | null;
     salles?: Array<{
         id: number;
         name: string;

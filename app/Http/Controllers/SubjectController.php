@@ -239,9 +239,9 @@ class SubjectController extends Controller
             'school_year_code' => $schoolYear?->code,
             'old_value' => $name,
             'new_value' => 'Supprimé',
-            'details' => 'Suppression de matière',
+            'details' => 'Archivage de matière',
             'notification_type' => 'autre',
-            'notification_content' => 'Suppression de la matière '.$name,
+            'notification_content' => 'Archivage de la matière '.$name,
         ]);
 
         return response()->json(['message' => 'Matière archivée.']);

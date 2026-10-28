@@ -89,6 +89,10 @@ export default function EnseignantsList() {
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
     const [editTelephone, setEditTelephone] = useState('');
+    const [editSalle, setEditSalle] = useState('');
+    const [editMatiere, setEditMatiere] = useState('');
+    const [editTeaches, setEditTeaches] = useState<any[]>([]);
+    const [editMatieresForSalle, setEditMatieresForSalle] = useState<any[]>([]);
     const [editError, setEditError] = useState<string | null>(null);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [pendingSalle, setPendingSalle] = useState<string>('');
@@ -120,6 +124,29 @@ export default function EnseignantsList() {
             .then((data: any[]) => setMatieresForSalle(data || []))
             .catch(() => setMatieresForSalle([]));
     }, [pendingSalle, salles]);
+    useEffect(() => {
+        if (!editSalle) {
+            setEditMatieresForSalle([]);
+            return;
+        }
+        const salle = salles.find((item: any) => item.room_id === editSalle);
+        if (!salle) {
+            setEditMatieresForSalle([]);
+            return;
+        }
+        fetch(`/web/salles/${salle.code || salle.id}/matieres`, {
+            credentials: 'include',
+            headers: { Accept: 'application/json' },
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Impossible de charger les matières de la salle.');
+                }
+                return response.json();
+            })
+            .then((data: any[]) => setEditMatieresForSalle(data || []))
+            .catch((error: Error) => setEditError(error.message));
+    }, [editSalle, salles]);
 
     const allMatieres = useMemo(() => {
         const set = new Set<string>();
@@ -398,6 +425,45 @@ export default function EnseignantsList() {
                 .replace(/\D/g, '')
                 .replace(/^237/, ''),
         );
+        setEditTeaches(
+            (teacher.teaches || []).map((teaching: any) => ({
+                subject: teaching.subject,
+                room_id: teaching.roomId,
+                coefficient: teaching.coefficient,
+            })),
+        );
+        setEditSalle('');
+        setEditMatiere('');
+        setEditError(null);
+    };
+
+    const handleAddEditTeach = () => {
+        if (!editSalle || !editMatiere) {
+            setEditError('Choisissez une salle et une matière.');
+            return;
+        }
+        if (
+            editTeaches.some(
+                (teaching) =>
+                    teaching.room_id === editSalle &&
+                    teaching.subject === editMatiere,
+            )
+        ) {
+            setEditError('Cette matière est déjà ajoutée pour cette salle.');
+            return;
+        }
+        const selectedSubject = editMatieresForSalle.find(
+            (subject: any) => subject.name === editMatiere,
+        );
+        setEditTeaches((previous) => [
+            ...previous,
+            {
+                subject: editMatiere,
+                room_id: editSalle,
+                coefficient: Number(selectedSubject?.coefficient) || 2,
+            },
+        ]);
+        setEditMatiere('');
         setEditError(null);
     };
 
@@ -405,6 +471,10 @@ export default function EnseignantsList() {
         if (!editingTeacher || isSavingEdit) return;
         if (!editName.trim() || !editEmail.trim()) {
             setEditError('Le nom et l’email sont obligatoires.');
+            return;
+        }
+        if (editTeaches.length === 0) {
+            setEditError('Ajoutez au moins une matière et une salle.');
             return;
         }
 
@@ -421,6 +491,10 @@ export default function EnseignantsList() {
                 body: JSON.stringify({
                     name: editName.trim(),
                     email: editEmail.trim(),
+                    teaches: editTeaches.map((teaching) => ({
+                        room_id: teaching.room_id,
+                        subject: teaching.subject,
+                    })),
                     ...(editTelephone.trim() &&
                     editTelephone.trim() !==
                         String(editingTeacher.telephone || '')
@@ -486,14 +560,14 @@ export default function EnseignantsList() {
             <PageBreadcrumb pageTitle="Enseignants" />
 
             <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-                <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between min-[1025px]:gap-2">
-                    <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center min-[1025px]:gap-2">
+                <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between min-[1024px]:gap-2">
+                    <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center min-[1024px]:gap-2">
                         <div className="w-full min-w-0 flex-shrink lg:max-w-[220px] xl:max-w-xs">
                             <Input
                                 placeholder="Rechercher par nom..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!text-xs"
+                                className="min-[1024px]:!h-8 min-[1024px]:!px-3 min-[1024px]:!py-1 min-[1024px]:!text-xs"
                             />
                         </div>
                         <StyledSelect
@@ -507,7 +581,7 @@ export default function EnseignantsList() {
                                 { value: 'expelled', label: 'Renvoyé' },
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[140px] lg:flex-none"
-                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
+                            controlClassName="min-[1024px]:!h-8 min-[1024px]:!px-3 min-[1024px]:!py-1 min-[1024px]:!pr-8 min-[1024px]:!text-xs"
                         />
                         <StyledSelect
                             value={filterMatiere}
@@ -521,7 +595,7 @@ export default function EnseignantsList() {
                                 })),
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[150px] lg:flex-none"
-                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
+                            controlClassName="min-[1024px]:!h-8 min-[1024px]:!px-3 min-[1024px]:!py-1 min-[1024px]:!pr-8 min-[1024px]:!text-xs"
                         />
                         <StyledSelect
                             value={filterSalle}
@@ -535,17 +609,17 @@ export default function EnseignantsList() {
                                 })),
                             ]}
                             className="min-w-0 flex-1 lg:min-w-[150px] lg:flex-none"
-                            controlClassName="min-[1025px]:!h-8 min-[1025px]:!px-3 min-[1025px]:!py-1 min-[1025px]:!pr-8 min-[1025px]:!text-xs"
+                            controlClassName="min-[1024px]:!h-8 min-[1024px]:!px-3 min-[1024px]:!py-1 min-[1024px]:!pr-8 min-[1024px]:!text-xs"
                         />
                         <AlphabeticalSortControl
                             value={sortDirection}
                             onChange={setSortDirection}
-                            className="min-[1025px]:!min-w-[110px] min-[1025px]:!px-2 min-[1025px]:!py-1 min-[1025px]:!text-xs"
+                            className="min-[1024px]:!min-w-[110px] min-[1024px]:!px-2 min-[1024px]:!py-1 min-[1024px]:!text-xs"
                         />
                     </div>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
-                        className="w-full shrink-0 whitespace-nowrap xl:w-auto min-[1025px]:!px-3 min-[1025px]:!py-1.5 min-[1025px]:!text-xs"
+                        className="w-full shrink-0 whitespace-nowrap xl:w-auto min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs"
                     >
                         Ajouter un enseignant
                     </Button>
@@ -672,12 +746,12 @@ export default function EnseignantsList() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="py-3 text-right">
-                                                <div className="flex justify-end gap-0.5 min-[1025px]:gap-0">
+                                                <div className="flex justify-end gap-0.5 min-[1024px]:gap-2">
                                                     <button
                                                         onClick={() =>
                                                             openTeacherEdit(t)
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Modifier
                                                     </button>
@@ -695,7 +769,7 @@ export default function EnseignantsList() {
                                                                 ? 'Vous ne pouvez pas destituer l’admin qui vous a promu.'
                                                                 : undefined
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
                                                     >
                                                         {t.is_admin
                                                             ? 'Destituer'
@@ -703,7 +777,7 @@ export default function EnseignantsList() {
                                                     </button>
                                                     <Link
                                                         to={`/enseignants/${t.id}`}
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Voir
                                                     </Link>
@@ -720,7 +794,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
                                                                 >
                                                                     Suspendre
                                                                 </button>
@@ -734,7 +808,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1025px]:!px-0.5 min-[1025px]:!py-0 min-[1025px]:!text-[8px] min-[1025px]:scale-[0.4] min-[1025px]:origin-right max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
                                                                 >
                                                                     Renvoyer
                                                                 </button>
@@ -748,7 +822,7 @@ export default function EnseignantsList() {
                                                                     t.id,
                                                                 )
                                                             }
-                                                            className="bg-success-50 text-success-700 hover:bg-success-100 dark:bg-success-500/10 dark:text-success-400 dark:hover:bg-success-500/20 dark:hover:text-success-300 rounded px-1 py-0.5 text-[10px] transition-colors"
+                                                            className="bg-success-50 text-success-700 hover:bg-success-100 dark:bg-success-500/10 dark:text-success-400 dark:hover:bg-success-500/20 dark:hover:text-success-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium"
                                                         >
                                                             Réactiver
                                                         </button>
@@ -992,6 +1066,103 @@ export default function EnseignantsList() {
                             }
                             placeholder="6XX XXX XXX"
                         />
+                    </div>
+                    <div className="rounded-lg border bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                        <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Matières et salles
+                        </p>
+                        <div className="flex flex-col gap-3 overflow-visible sm:flex-row sm:items-end sm:gap-2">
+                            <div className="min-w-0 flex-1">
+                                <StyledSelect
+                                    value={editSalle}
+                                    onChange={(value) => {
+                                        setEditSalle(value);
+                                        setEditMatiere('');
+                                    }}
+                                    placeholder="Salle concernée"
+                                    options={salles
+                                        .filter(
+                                            (salle: any) =>
+                                                salle.status === 'active',
+                                        )
+                                        .map((salle: any) => ({
+                                            value: salle.room_id,
+                                            label: salle.name,
+                                        }))}
+                                />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <StyledSelect
+                                    value={editMatiere}
+                                    onChange={setEditMatiere}
+                                    placeholder={
+                                        editSalle
+                                            ? editMatieresForSalle.length
+                                                ? 'Matière'
+                                                : 'Aucune matière disponible'
+                                            : "Choisir d'abord une salle"
+                                    }
+                                    options={editMatieresForSalle
+                                        .filter(
+                                            (subject: any) =>
+                                                !editTeaches.some(
+                                                    (teaching) =>
+                                                        teaching.room_id ===
+                                                            editSalle &&
+                                                        teaching.subject ===
+                                                            subject.name,
+                                                ),
+                                        )
+                                        .map((subject: any) => ({
+                                            value: subject.name,
+                                            label: `${subject.name} (coef ${subject.coefficient})`,
+                                        }))}
+                                    disabled={!editSalle}
+                                />
+                            </div>
+                            <Button
+                                onClick={handleAddEditTeach}
+                                className="h-10 shrink-0 px-3 text-xs whitespace-nowrap sm:h-11 sm:px-4 sm:text-sm"
+                            >
+                                Ajouter
+                            </Button>
+                        </div>
+                        {editTeaches.length > 0 ? (
+                            <ul className="mt-3 flex max-h-[120px] flex-col gap-2 overflow-y-auto">
+                                {editTeaches.map(
+                                    (teaching: any, index: number) => (
+                                        <li
+                                            key={`${teaching.room_id}-${teaching.subject}-${index}`}
+                                            className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                        >
+                                            <span>
+                                                {teaching.subject} —{' '}
+                                                {teaching.room_id}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditTeaches((previous) =>
+                                                        previous.filter(
+                                                            (_, itemIndex) =>
+                                                                itemIndex !==
+                                                                index,
+                                                        ),
+                                                    )
+                                                }
+                                                className="text-error-600 hover:text-error-700 text-xs"
+                                            >
+                                                Retirer
+                                            </button>
+                                        </li>
+                                    ),
+                                )}
+                            </ul>
+                        ) : (
+                            <p className="mt-2 text-xs text-gray-500">
+                                Ajoutez au moins une matière et une salle.
+                            </p>
+                        )}
                     </div>
                     <div className="flex justify-end gap-2">
                         <Button
