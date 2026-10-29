@@ -111,6 +111,7 @@ export default function EnseignantDetail() {
                             coefficient: t.coefficient,
                         })),
                         createdAt: data.created_at?.slice(0, 10) || '',
+                        attendances: data.attendances || [],
                     });
                 }
                 setTeacherLoading(false);
@@ -834,6 +835,77 @@ export default function EnseignantDetail() {
                                         </TableCell>
                                         <TableCell className="py-3 text-sm">
                                             {h.actor || '—'}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </div>
+
+            <div className="rounded-2xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-800">
+                <h3 className="mb-3 font-semibold text-gray-800 dark:text-white">
+                    Historique des présences
+                </h3>
+                {(!teacher.attendances || teacher.attendances.length === 0) ? (
+                    <p className="text-sm text-gray-500">
+                        Aucune présence enregistrée.
+                    </p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="border-y border-gray-100 dark:border-gray-800">
+                                <TableRow>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Date
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Statut
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Marqué par
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Heure d'enregistrement
+                                    </TableCell>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                                {teacher.attendances.map((a: any, i: number) => (
+                                    <TableRow key={i}>
+                                        <TableCell className="py-3 text-sm">
+                                            {new Date(a.date).toLocaleDateString(
+                                                'fr-FR',
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            <Badge
+                                                color={a.present ? 'success' : 'error'}
+                                                size="sm"
+                                            >
+                                                {a.present ? 'Présent' : 'Absent'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="py-3 text-sm">
+                                            {a.marked_by || '—'}
+                                        </TableCell>
+                                        <TableCell className="py-3 text-sm">
+                                            {a.updated_at 
+                                                ? new Date(a.updated_at).toLocaleString('fr-FR')
+                                                : '—'}
                                         </TableCell>
                                     </TableRow>
                                 ))}

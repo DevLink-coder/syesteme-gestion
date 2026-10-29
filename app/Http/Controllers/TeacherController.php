@@ -79,10 +79,16 @@ class TeacherController extends Controller
 
         $slots = TenantDB::table('timetable_slots')->whereNull('deleted_at')->where('teacher_id', $user->id)->get();
         $history = TenantDB::table('user_histories')->where('user_id', $user->id)->orderByDesc('changed_at')->get();
+        $attendances = TenantDB::table('teacher_attendances')
+            ->where('teacher_id', $user->id)
+            ->orderByDesc('date')
+            ->orderByDesc('updated_at')
+            ->get();
 
         $user->teaches = $teaches;
         $user->slots = $slots;
         $user->history = $history;
+        $user->attendances = $attendances;
 
         return response()->json($user);
     }
