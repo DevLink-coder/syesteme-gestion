@@ -20,11 +20,13 @@ import { useEvaluations } from '../../context/EvaluationsContext';
 import { useAttendance } from '../../context/AttendanceContext';
 import { buildEcheancier } from '../../lib/echeancier';
 import { useAlertModal } from '../../context/AlertModalContext';
+import { useToast } from '../../context/ToastContext';
 
 export default function EleveDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { showAlert } = useAlertModal();
+    const { showToast } = useToast();
     const {
         getStudentById,
         getInscriptionsForStudent,
@@ -140,7 +142,6 @@ export default function EleveDetail() {
     );
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [parentShareLink, setParentShareLink] = useState('');
-    const [toast, setToast] = useState<string | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editName, setEditName] = useState('');
     const [editParent, setEditParent] = useState('');
@@ -148,12 +149,6 @@ export default function EleveDetail() {
     const [editMonths, setEditMonths] = useState('9');
     const [editError, setEditError] = useState<string | null>(null);
     const [isDeleteConfirm, setIsDeleteConfirm] = useState(false);
-
-    useEffect(() => {
-        if (!toast) return;
-        const t = setTimeout(() => setToast(null), 3000);
-        return () => clearTimeout(t);
-    }, [toast]);
 
     const openEdit = () => {
         if (!student) return;
@@ -204,17 +199,17 @@ export default function EleveDetail() {
             }
         }
         setIsEditOpen(false);
-        setToast('Informations de l’élève mises à jour.');
+        showToast('Informations de l’élève mises à jour.');
     };
 
     const handleDelete = async () => {
         if (!student) return;
         const res = await deleteStudent(student.id);
         if (!res.ok) {
-            setToast(res.error || 'Suppression impossible.');
+            showToast(res.error || 'Suppression impossible.', 'error');
             return;
         }
-        setToast('Élève archivé.');
+        showToast('Élève archivé.');
         setTimeout(() => navigate('/eleves'), 600);
     };
 
@@ -234,7 +229,7 @@ export default function EleveDetail() {
             setPayError(res.error || 'Erreur');
             return;
         }
-        setToast(`Paiement de ${payAmount} FCFA enregistré.`);
+        showToast(`Paiement de ${payAmount} FCFA enregistré.`);
         setIsPayOpen(null);
         setPayAmount('');
         setPayError(null);
@@ -322,8 +317,8 @@ export default function EleveDetail() {
             );
             return;
         }
-        setToast('Lien copié dans le presse-papiers');
-        setTimeout(() => setToast(null), 3000);
+        setShareModalOpen(false);
+        showToast('Lien copié');
     };
 
     return (
@@ -473,9 +468,12 @@ export default function EleveDetail() {
                                             actuelle.id,
                                         ).then((r) => {
                                             if (!r.ok)
-                                                setToast(r.error || 'Erreur');
+                                                showToast(
+                                                    r.error || 'Erreur',
+                                                    'error',
+                                                );
                                             else
-                                                setToast(
+                                                showToast(
                                                     'Inscription réactivée.',
                                                 );
                                         })
@@ -637,12 +635,13 @@ export default function EleveDetail() {
                                                             ins.id,
                                                         ).then((r) => {
                                                             if (!r.ok)
-                                                                setToast(
+                                                                showToast(
                                                                     r.error ||
                                                                         'Erreur',
+                                                                    'error',
                                                                 );
                                                             else
-                                                                setToast(
+                                                                showToast(
                                                                     'Inscription réactivée.',
                                                                 );
                                                         })
@@ -1246,9 +1245,12 @@ export default function EleveDetail() {
                                 void pauseInscription(isPauseConfirm).then(
                                     (r) => {
                                         if (!r.ok)
-                                            setToast(r.error || 'Erreur');
+                                            showToast(
+                                                r.error || 'Erreur',
+                                                'error',
+                                            );
                                         else
-                                            setToast(
+                                            showToast(
                                                 'Inscription mise en pause.',
                                             );
                                     },
@@ -1546,12 +1548,6 @@ export default function EleveDetail() {
                     </Button>
                 </div>
             </Modal>
-
-            {toast && (
-                <div className="animate-slide-up bg-brand-500 fixed right-4 bottom-4 z-50 rounded-lg px-4 py-2 text-sm text-white shadow-lg">
-                    {toast}
-                </div>
-            )}
         </>
     );
 }
