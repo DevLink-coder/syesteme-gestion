@@ -328,7 +328,7 @@ export default function EvaluationSaisie() {
                                                 Coefficient
                                             </th>
                                             <th className="px-3 py-2 text-center font-medium text-gray-500">
-                                                Note
+                                                Note/20
                                             </th>
                                         </tr>
                                     </thead>
