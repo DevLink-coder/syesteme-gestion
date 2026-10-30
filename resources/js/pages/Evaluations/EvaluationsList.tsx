@@ -32,23 +32,16 @@ interface SchoolYearOption {
     is_active?: boolean;
 }
 
-interface SubjectOption {
-    id: string;
-    name: string;
-}
-
 export default function EvaluationsList() {
     const { evaluations, loadEvaluations, createEvaluation } = useEvaluations();
     const { showToast } = useToast();
     const [salles, setSalles] = useState<SalleOption[]>([]);
     const [schoolYears, setSchoolYears] = useState<SchoolYearOption[]>([]);
-    const [subjects, setSubjects] = useState<SubjectOption[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [salleId, setSalleId] = useState('');
+    const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
     const [schoolYearId, setSchoolYearId] = useState('');
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-    const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [sortDirection, setSortDirection] =
         useState<AlphabeticalDirection>('asc');
@@ -122,62 +115,15 @@ export default function EvaluationsList() {
     }, []);
 
     useEffect(() => {
-        if (!salleId) {
-            setSubjects([]);
-            return;
-        }
-
-        let cancelled = false;
-        fetch(`/web/salles/${salleId}/matieres`, {
-            credentials: 'include',
-            headers: { Accept: 'application/json' },
-        })
-            .then((response) => {
-                if (!response.ok)
-                    throw new Error(
-                        'Impossible de charger les matières de cette salle.',
-                    );
-                return response.json();
-            })
-            .then((payload) => {
-                if (!cancelled) {
-                    setSubjects(
-                        Array.isArray(payload)
-                            ? payload.map((subject: any) => ({
-                                  id: String(subject.subject_id),
-                                  name: subject.name,
-                              }))
-                            : [],
-                    );
-                }
-            })
-            .catch((loadError: any) => {
-                if (!cancelled) {
-                    setSubjects([]);
-                    setError(
-                        loadError.message ||
-                            'Erreur lors du chargement des matières.',
-                    );
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [salleId]);
-
-    useEffect(() => {
         if (schoolYearId) {
             void loadEvaluations(schoolYearId);
         }
     }, [schoolYearId, loadEvaluations]);
 
     const openModal = () => {
-        setSalleId('');
-        setSubjects([]);
+        setSelectedSalleIds([]);
         setTitle('');
         setDate(new Date().toISOString().slice(0, 10));
-        setSelectedSubjects([]);
         setError(null);
         setIsOpen(true);
     };
@@ -185,9 +131,8 @@ export default function EvaluationsList() {
     const handleCreate = async () => {
         if (
             !title.trim() ||
-            !salleId ||
+            selectedSalleIds.length === 0 ||
             !date ||
-            selectedSubjects.length === 0 ||
             !schoolYearId
         ) {
             setError('Veuillez remplir tous les champs obligatoires');
@@ -196,9 +141,8 @@ export default function EvaluationsList() {
 
         const result = await createEvaluation({
             title: title.trim(),
-            salleId,
+            salleIds: selectedSalleIds,
             date,
-            subjects: selectedSubjects,
             schoolYearId,
         });
 
@@ -357,21 +301,55 @@ export default function EvaluationsList() {
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium">
-                            Salle *
+                            Salles *
                         </label>
-                        <StyledSelect
-                            value={salleId}
-                            onChange={(value) => {
-                                setSalleId(value);
-                                setSelectedSubjects([]);
-                                setError(null);
-                            }}
-                            placeholder="Choisir une salle"
-                            options={salles.map((s) => ({
-                                value: s.id,
-                                label: s.name,
-                            }))}
-                        />
+                        <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700">
+                            {salles.length === 0 ? (
+                                <p className="py-1 text-sm text-gray-400">
+                                    Aucune salle disponible
+                                </p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {salles.map((salle) => (
+                                        <label
+                                            key={salle.id}
+                                            className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedSalleIds.includes(
+                                                    salle.id,
+                                                )}
+                                                onChange={(event) => {
+                                                    setSelectedSalleIds(
+                                                        (current) =>
+                                                            event.target.checked
+                                                                ? [
+                                                                      ...current,
+                                                                      salle.id,
+                                                                  ]
+                                                                : current.filter(
+                                                                      (id) =>
+                                                                          id !==
+                                                                          salle.id,
+                                                                  ),
+                                                    );
+                                                    setError(null);
+                                                }}
+                                                className="text-brand-500 focus:ring-brand-500/20 h-4 w-4 rounded border-gray-300"
+                                            />
+                                            <span>{salle.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {selectedSalleIds.length > 0 && (
+                            <p className="mt-1 text-xs text-gray-500">
+                                {selectedSalleIds.length} salle(s)
+                                sélectionnée(s)
+                            </p>
+                        )}
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium">
@@ -400,62 +378,6 @@ export default function EvaluationsList() {
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                         />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Matières *
-                        </label>
-                        <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700">
-                            {!salleId ? (
-                                <p className="py-1 text-sm text-gray-400">
-                                    Choisir une salle d’abord
-                                </p>
-                            ) : subjects.length === 0 ? (
-                                <p className="py-1 text-sm text-gray-400">
-                                    Aucune matière associée à cette salle
-                                </p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {subjects.map((item) => (
-                                        <label
-                                            key={item.id}
-                                            className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedSubjects.includes(
-                                                    item.name,
-                                                )}
-                                                onChange={(event) => {
-                                                    setSelectedSubjects(
-                                                        (current) =>
-                                                            event.target.checked
-                                                                ? [
-                                                                      ...current,
-                                                                      item.name,
-                                                                  ]
-                                                                : current.filter(
-                                                                      (name) =>
-                                                                          name !==
-                                                                          item.name,
-                                                                  ),
-                                                    );
-                                                    setError(null);
-                                                }}
-                                                className="text-brand-500 focus:ring-brand-500/20 h-4 w-4 rounded border-gray-300"
-                                            />
-                                            <span>{item.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        {selectedSubjects.length > 0 && (
-                            <p className="mt-1 text-xs text-gray-500">
-                                {selectedSubjects.length} matière(s)
-                                sélectionnée(s)
-                            </p>
-                        )}
                     </div>
                     {error && <p className="text-error-500 text-sm">{error}</p>}
                     <div className="flex justify-end gap-2">

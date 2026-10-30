@@ -7,7 +7,6 @@ use App\Models\Grade;
 use App\Models\Inscription;
 use App\Models\Salle;
 use App\Models\Student;
-use App\Support\TenantDB;
 use App\Support\TenantRules;
 use Illuminate\Http\Request;
 
@@ -127,42 +126,28 @@ class EvaluationController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'salle_id' => ['required', TenantRules::exists('salles')],
+            'salle_ids' => ['required', 'array', 'min:1'],
+            'salle_ids.*' => ['required', TenantRules::exists('salles')],
             'date' => ['required', 'date'],
-            'subjects' => ['required', 'array', 'min:1'],
-            'subjects.*' => [
-                'required',
-                'string',
-                'distinct',
-                function ($attribute, $value, $fail) use ($request) {
-                    $isAssignedToSalle = TenantDB::table('salle_subject')
-                        ->join('subjects', 'subjects.id', '=', 'salle_subject.subject_id')
-                        ->where('salle_subject.salle_id', $request->input('salle_id'))
-                        ->whereNull('subjects.deleted_at')
-                        ->where('subjects.name', $value)
-                        ->exists();
-
-                    if (! $isAssignedToSalle) {
-                        $fail('Une matière sélectionnée n’est pas associée à cette salle.');
-                    }
-                },
-            ],
             'school_year_id' => ['required', TenantRules::exists('school_years')],
         ]);
 
-        $salle = Salle::findOrFail($validated['salle_id']);
+        $salles = Salle::whereIn('id', $validated['salle_ids'])->get();
+        $firstSalle = $salles->first();
 
         $evaluation = Evaluation::create([
-            'code' => 'eval-'.$validated['salle_id'].'-'.$validated['date'].'-'.now()->timestamp,
+            'code' => 'eval-'.implode('-', $validated['salle_ids']).'-'.$validated['date'].'-'.now()->timestamp,
             'title' => trim($validated['title']),
-            'salle_id' => $validated['salle_id'],
-            'room_id' => $salle->room_id,
+            'salle_id' => $firstSalle->id,
+            'room_id' => $firstSalle->room_id,
             'date' => $validated['date'],
-            'subject' => implode(', ', $validated['subjects']),
+            'subject' => 'Toutes les matières',
             'status' => 'en attente',
             'school_year_id' => $validated['school_year_id'],
             'created_by' => auth()->id(),
         ]);
+
+        $evaluation->salles()->attach($validated['salle_ids']);
 
         return response()->json([
             'message' => 'Évaluation créée avec succès',
@@ -174,18 +159,20 @@ class EvaluationController extends Controller
                 'date' => $evaluation->date?->format('Y-m-d'),
                 'subject' => $evaluation->subject,
                 'status' => $evaluation->status,
+                'salleIds' => $validated['salle_ids'],
             ],
         ], 201);
     }
 
     public function grades(Request $request, $evaluationId)
     {
-        $evaluation = Evaluation::with(['salle', 'grades.student', 'grades.subject'])
+        $evaluation = Evaluation::with(['salles', 'grades.student', 'grades.subject'])
             ->findOrFail($evaluationId);
 
-        // Récupérer les élèves inscrits dans cette salle
+        $salleIds = $evaluation->salles->pluck('id')->toArray();
+
         $studentIds = Inscription::query()
-            ->where('salle_id', $evaluation->salle_id)
+            ->whereIn('salle_id', $salleIds)
             ->whereIn('statut', ['Validée', 'En attente de paiement'])
             ->pluck('student_id')
             ->toArray();
@@ -216,6 +203,7 @@ class EvaluationController extends Controller
                 'date' => $evaluation->date?->format('Y-m-d'),
                 'subject' => $evaluation->subject,
                 'status' => $evaluation->status,
+                'salleIds' => $salleIds,
             ],
             'students' => $studentData,
         ]);
@@ -252,8 +240,9 @@ class EvaluationController extends Controller
         );
 
         // Mettre à jour le statut de l'évaluation si toutes les notes sont saisies
+        $salleIds = $evaluation->salles->pluck('id')->toArray();
         $totalStudents = Inscription::query()
-            ->where('salle_id', $evaluation->salle_id)
+            ->whereIn('salle_id', $salleIds)
             ->whereIn('statut', ['Validée', 'En attente de paiement'])
             ->count();
         $gradedStudents = $evaluation->grades()->count();
@@ -269,6 +258,103 @@ class EvaluationController extends Controller
                 'note' => (float) $grade->note,
                 'coefficient' => (float) $grade->coefficient,
             ],
+        ]);
+    }
+
+    public function salles(Request $request, $evaluationId)
+    {
+        $evaluation = Evaluation::with(['salles'])->findOrFail($evaluationId);
+
+        $sallesData = $evaluation->salles->map(function ($salle) {
+            return [
+                'id' => (string) $salle->id,
+                'name' => $salle->name,
+                'code' => $salle->code,
+                'roomId' => $salle->room_id,
+            ];
+        });
+
+        return response()->json([
+            'evaluation' => [
+                'id' => (string) $evaluation->id,
+                'title' => $evaluation->title,
+            ],
+            'salles' => $sallesData,
+        ]);
+    }
+
+    public function studentsInSalle(Request $request, $evaluationId, $salleId)
+    {
+        $evaluation = Evaluation::findOrFail($evaluationId);
+
+        $studentIds = Inscription::query()
+            ->where('salle_id', $salleId)
+            ->whereIn('statut', ['Validée', 'En attente de paiement'])
+            ->pluck('student_id')
+            ->toArray();
+
+        $students = Student::whereIn('id', $studentIds)
+            ->orderBy('name')
+            ->get();
+
+        $studentsData = $students->map(function ($student) {
+            return [
+                'id' => (string) $student->id,
+                'name' => $student->name,
+                'code' => $student->code,
+            ];
+        });
+
+        return response()->json([
+            'evaluation' => [
+                'id' => (string) $evaluation->id,
+                'title' => $evaluation->title,
+            ],
+            'salle' => [
+                'id' => (string) $salleId,
+            ],
+            'students' => $studentsData,
+        ]);
+    }
+
+    public function studentSubjects(Request $request, $evaluationId, $salleId, $studentId)
+    {
+        $evaluation = Evaluation::with(['grades' => function ($query) use ($studentId) {
+            $query->where('student_id', $studentId);
+        }])->findOrFail($evaluationId);
+
+        $salle = Salle::with(['subjects' => function ($query) {
+            $query->orderBy('name');
+        }])->findOrFail($salleId);
+
+        $subjectsData = $salle->subjects->map(function ($subject) use ($evaluation) {
+            $grade = $evaluation->grades->firstWhere('subject_id', $subject->id);
+
+            return [
+                'id' => (string) $subject->id,
+                'name' => $subject->name,
+                'coefficient' => (float) ($subject->pivot->coefficient ?? 1),
+                'note' => $grade ? (float) $grade->note : null,
+                'gradeId' => $grade ? (string) $grade->id : null,
+            ];
+        });
+
+        $student = Student::findOrFail($studentId);
+
+        return response()->json([
+            'evaluation' => [
+                'id' => (string) $evaluation->id,
+                'title' => $evaluation->title,
+            ],
+            'salle' => [
+                'id' => (string) $salle->id,
+                'name' => $salle->name,
+            ],
+            'student' => [
+                'id' => (string) $student->id,
+                'name' => $student->name,
+            ],
+            'subjects' => $subjectsData,
         ]);
     }
 }

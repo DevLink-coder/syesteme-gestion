@@ -53,9 +53,8 @@ interface EvaluationsContextValue {
     getEvaluation: (id: string) => Promise<EvaluationDetail>;
     createEvaluation: (data: {
         title: string;
-        salleId: string;
+        salleIds: string[];
         date: string;
-        subjects: string[];
         schoolYearId: string;
     }) => Promise<{
         ok: boolean;
@@ -142,9 +141,8 @@ export const EvaluationsProvider: React.FC<{ children: React.ReactNode }> = ({
     const createEvaluation = useCallback(
         async (data: {
             title: string;
-            salleId: string;
+            salleIds: string[];
             date: string;
-            subjects: string[];
             schoolYearId: string;
         }) => {
             try {
@@ -158,9 +156,8 @@ export const EvaluationsProvider: React.FC<{ children: React.ReactNode }> = ({
                     },
                     body: JSON.stringify({
                         title: data.title,
-                        salle_id: data.salleId,
+                        salle_ids: data.salleIds,
                         date: data.date,
-                        subjects: data.subjects,
                         school_year_id: data.schoolYearId,
                     }),
                 });

@@ -211,6 +211,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/web/evaluations', [EvaluationController::class, 'store'])->name('web.evaluations.store');
         Route::get('/web/evaluations/{id}/grades', [EvaluationController::class, 'grades'])->name('web.evaluations.grades');
         Route::post('/web/evaluations/{id}/grades', [EvaluationController::class, 'storeGrade'])->name('web.evaluations.grades.store');
+        Route::get('/web/evaluations/{id}/salles', [EvaluationController::class, 'salles'])->name('web.evaluations.salles');
+        Route::get('/web/evaluations/{id}/salles/{salleId}/students', [EvaluationController::class, 'studentsInSalle'])->name('web.evaluations.salles.students');
+        Route::get('/web/evaluations/{id}/salles/{salleId}/students/{studentId}/subjects', [EvaluationController::class, 'studentSubjects'])->name('web.evaluations.salles.students.subjects');
     });
 
     // Espace enseignant: les données sont limitées à l'utilisateur authentifié.
