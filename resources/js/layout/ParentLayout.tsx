@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useParams, useSearchParams } from 'react-router';
+import {
+    Link,
+    Outlet,
+    useParams,
+    useSearchParams,
+    useLocation,
+} from 'react-router';
 
 interface ParentPortalData {
     student: {
@@ -31,6 +37,7 @@ interface ParentPortalData {
 export default function ParentLayout() {
     const { studentId } = useParams();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const token = searchParams.get('token') || '';
     const [data, setData] = useState<ParentPortalData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -99,14 +106,40 @@ export default function ParentLayout() {
     }
 
     const { student } = data;
+    const isBulletin = location.pathname === `/parent/${studentId}`;
+    const isAbsences = location.pathname.endsWith('/absences');
+    const isSolde = location.pathname.endsWith('/solde');
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-300">
-                    Consultation en lecture seule — informations de{' '}
-                    {student.name}.
+            <header className="border-b bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+                <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
+                    <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {student.name}
+                    </h1>
+                    <nav className="flex gap-2">
+                        <Link
+                            to={`/parent/${encodeURIComponent(student.code || student.id)}?token=${encodeURIComponent(token)}`}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium ${isBulletin ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
+                        >
+                            Bulletins
+                        </Link>
+                        <Link
+                            to={`/parent/${encodeURIComponent(student.code || student.id)}/absences?token=${encodeURIComponent(token)}`}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium ${isAbsences ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
+                        >
+                            Absences
+                        </Link>
+                        <Link
+                            to={`/parent/${encodeURIComponent(student.code || student.id)}/solde?token=${encodeURIComponent(token)}`}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium ${isSolde ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
+                        >
+                            Compte
+                        </Link>
+                    </nav>
                 </div>
+            </header>
+            <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
                 <Outlet context={data} />
             </main>
         </div>
