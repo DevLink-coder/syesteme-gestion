@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-    Link,
-    Outlet,
-    useLocation,
-    useParams,
-    useSearchParams,
-} from 'react-router';
+import { Outlet, useParams, useSearchParams } from 'react-router';
 
 interface ParentPortalData {
     student: {
@@ -37,7 +31,6 @@ interface ParentPortalData {
 export default function ParentLayout() {
     const { studentId } = useParams();
     const [searchParams] = useSearchParams();
-    const location = useLocation();
     const token = searchParams.get('token') || '';
     const [data, setData] = useState<ParentPortalData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -47,7 +40,7 @@ export default function ParentLayout() {
         let cancelled = false;
         setData(null);
         setInvalidLink(false);
-        if (!studentId || token.length < 32) {
+        if (!studentId || !token || token.length < 32) {
             setInvalidLink(true);
             setLoading(false);
             return;
@@ -106,52 +99,9 @@ export default function ParentLayout() {
     }
 
     const { student } = data;
-    const isBulletin = location.pathname === `/parent/${studentId}`;
-    const isAbsences = location.pathname.endsWith('/absences');
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <header className="sticky top-0 z-10 border-b bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Espace parent
-                            </p>
-                            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                {student.name}{' '}
-                                <span className="text-sm font-normal text-gray-500">
-                                    — {student.code}
-                                </span>
-                            </h1>
-                        </div>
-                        <nav
-                            className="flex flex-wrap gap-2"
-                            aria-label="Informations de l’élève"
-                        >
-                            <Link
-                                to={`/parent/${encodeURIComponent(student.code || student.id)}?token=${encodeURIComponent(token)}`}
-                                className={`rounded-lg px-4 py-2 text-sm font-medium ${isBulletin ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
-                            >
-                                Bulletins
-                            </Link>
-                            <Link
-                                to={`/parent/${encodeURIComponent(student.code || student.id)}/absences?token=${encodeURIComponent(token)}`}
-                                className={`rounded-lg px-4 py-2 text-sm font-medium ${isAbsences ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
-                            >
-                                Absences
-                            </Link>
-                            <Link
-                                to={`/parent/${encodeURIComponent(student.code || student.id)}/solde?token=${encodeURIComponent(token)}`}
-                                className={`rounded-lg px-4 py-2 text-sm font-medium ${location.pathname.endsWith('/solde') ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700'}`}
-                            >
-                                Frais mensuels
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
-
             <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
                 <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-300">
                     Consultation en lecture seule — informations de{' '}
@@ -159,10 +109,6 @@ export default function ParentLayout() {
                 </div>
                 <Outlet context={data} />
             </main>
-
-            <footer className="mx-auto max-w-5xl px-4 py-6 text-center text-xs text-gray-400">
-                Centre de répétition · Espace parent sécurisé
-            </footer>
         </div>
     );
 }
