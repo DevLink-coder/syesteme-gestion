@@ -116,6 +116,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth', '
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth')->name('me');
 
 // Parent portal: read-only data is available only with an expiring bearer link.
+Route::post('/web/parent/login', [ParentPortalController::class, 'loginByWhatsapp'])->middleware('throttle:5,1')->name('web.parent.login');
 Route::get('/web/parent/{studentId}', [ParentPortalController::class, 'show'])->middleware('throttle:60,1')->name('web.parent.show');
 
 // Timetable lié étudiant/enseignant - web sans api (CRUD + réutiliser semaine passée)

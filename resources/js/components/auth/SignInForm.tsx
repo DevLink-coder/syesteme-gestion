@@ -6,6 +6,7 @@ import Checkbox from '../form/input/Checkbox';
 import Button from '../ui/button/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNavigate } from 'react-router';
 
 export default function SignInForm() {
     const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +17,7 @@ export default function SignInForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { login } = useAuth();
     const { showToast } = useToast();
+    const navigate = useNavigate();
 
     const handleSignIn = async () => {
         setError('');
@@ -149,6 +151,15 @@ export default function SignInForm() {
                                         ? 'Connexion…'
                                         : 'Se connecter'}
                                 </Button>
+                            </div>
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/parent-login')}
+                                    className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 text-sm"
+                                >
+                                    Je suis un parent
+                                </button>
                             </div>
                         </div>
                     </form>

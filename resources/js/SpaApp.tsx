@@ -100,6 +100,7 @@ function AuthenticatedRouter() {
 }
 
 const SignIn = lazy(() => import('./pages/AuthPages/SignIn'));
+const ParentLogin = lazy(() => import('./pages/AuthPages/ParentLogin'));
 const NotFound = lazy(() => import('./pages/OtherPage/NotFound'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -230,6 +231,7 @@ function AppRoutes() {
             {/* Auth Layout */}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<Navigate to="/signin" replace />} />
+            <Route path="/parent-login" element={<ParentLogin />} />
 
             {/* Dashboard Layout */}
             <Route element={<AppLayout />}>

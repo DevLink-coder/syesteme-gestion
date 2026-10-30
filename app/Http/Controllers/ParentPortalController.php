@@ -14,6 +14,52 @@ use Illuminate\Support\Str;
 
 class ParentPortalController extends Controller
 {
+    public function loginByWhatsapp(Request $request)
+    {
+        $whatsapp = $request->input('whatsapp', '');
+        $cleanNumber = preg_replace('/^(\+237|237)/', '', trim($whatsapp));
+
+        if (strlen($cleanNumber) < 9) {
+            return response()->json(['message' => 'Numéro WhatsApp invalide'], 422);
+        }
+
+        $student = Student::query()
+            ->where('parent_whatsapp', 'like', '%'.$cleanNumber)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (! $student) {
+            return response()->json(['message' => 'Aucun compte parent trouvé pour ce numéro'], 404);
+        }
+
+        // Generate or refresh parent token if expired or doesn't exist
+        if (! $student->parent_token || ! $student->parent_token_expires_at || $student->parent_token_expires_at->isPast()) {
+            $plainToken = Str::random(64);
+            $student->forceFill([
+                'parent_token' => hash('sha256', $plainToken),
+                'parent_token_expires_at' => now()->addDays(30),
+            ])->save();
+        } else {
+            // Reuse existing token by finding it (we'll need to store the plain token somewhere or regenerate)
+            // For security, we'll regenerate to avoid storing plain tokens
+            $plainToken = Str::random(64);
+            $student->forceFill([
+                'parent_token' => hash('sha256', $plainToken),
+                'parent_token_expires_at' => now()->addDays(30),
+            ])->save();
+        }
+
+        $centerSlug = DB::table('centers')
+            ->where('id', $student->center_id)
+            ->value('slug');
+        $centerPath = $centerSlug ? '/'.$centerSlug : '';
+
+        return response()->json([
+            'url' => rtrim((string) config('app.url'), '/').$centerPath.'/parent/'.$student->code.'?token='.urlencode($plainToken),
+            'expiresAt' => $student->parent_token_expires_at?->toIso8601String(),
+        ])->header('Cache-Control', 'no-store, private');
+    }
+
     public function createLink(Request $request, $studentId)
     {
         $student = Student::query()->findOrFail($studentId);
