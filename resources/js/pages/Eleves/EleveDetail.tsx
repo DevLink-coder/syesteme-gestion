@@ -308,7 +308,27 @@ export default function EleveDetail() {
             }
             generatedUrl = payload.url;
             setParentShareLink(payload.url);
-            await navigator.clipboard.writeText(payload.url);
+
+            // Essayer d'abord avec l'API Clipboard moderne
+            try {
+                await navigator.clipboard.writeText(payload.url);
+            } catch {
+                // Fallback avec l'ancienne méthode
+                const textArea = document.createElement('textarea');
+                textArea.value = payload.url;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch {
+                    throw new Error('Copie impossible');
+                }
+                document.body.removeChild(textArea);
+            }
         } catch {
             showAlert(
                 generatedUrl
