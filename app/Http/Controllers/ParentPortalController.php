@@ -56,6 +56,8 @@ class ParentPortalController extends Controller
 
         return response()->json([
             'url' => rtrim((string) config('app.url'), '/').$centerPath.'/parent/'.$student->code.'?token='.urlencode($plainToken),
+            'centerSlug' => $centerSlug,
+            'studentCode' => $student->code,
             'expiresAt' => $student->parent_token_expires_at?->toIso8601String(),
         ])->header('Cache-Control', 'no-store, private');
     }

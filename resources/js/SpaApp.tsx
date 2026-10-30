@@ -233,6 +233,19 @@ function AppRoutes() {
             <Route path="/signup" element={<Navigate to="/signin" replace />} />
             <Route path="/parent-login" element={<ParentLogin />} />
 
+            {/* Espace Parent — lien sécurisé (public, accessible via token) */}
+            <Route element={<ParentLayout />}>
+                <Route path="/parent/:studentId" element={<ParentBulletin />} />
+                <Route
+                    path="/parent/:studentId/solde"
+                    element={<ParentSolde />}
+                />
+                <Route
+                    path="/parent/:studentId/absences"
+                    element={<ParentAbsences />}
+                />
+            </Route>
+
             {/* Dashboard Layout */}
             <Route element={<AppLayout />}>
                 <Route
@@ -488,22 +501,6 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-
-                {/* Espace Parent — lien sécurisé EF-32 */}
-                <Route element={<ParentLayout />}>
-                    <Route
-                        path="/parent/:studentId"
-                        element={<ParentBulletin />}
-                    />
-                    <Route
-                        path="/parent/:studentId/solde"
-                        element={<ParentSolde />}
-                    />
-                    <Route
-                        path="/parent/:studentId/absences"
-                        element={<ParentAbsences />}
-                    />
-                </Route>
 
                 {/* Profile - accessible to all roles */}
                 <Route path="/profile" element={<UserProfiles />} />

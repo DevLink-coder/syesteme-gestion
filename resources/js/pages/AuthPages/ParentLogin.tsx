@@ -47,8 +47,11 @@ export default function ParentLogin() {
 
             const data = await res.json();
             if (data.url) {
+                showToast('Connexion réussie. Redirection...', 'success');
                 // Rediriger vers l'URL du lien parent
-                window.location.href = data.url;
+                setTimeout(() => {
+                    window.location.href = data.url;
+                }, 500);
             } else {
                 throw new Error('Erreur lors de la génération du lien.');
             }
