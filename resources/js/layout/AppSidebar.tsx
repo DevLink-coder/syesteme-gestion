@@ -59,8 +59,13 @@ const adminNavItems: NavItem[] = [
         name: 'Présences',
         subItems: [
             {
-                name: 'Vue consolidée & Alertes',
-                path: '/presences',
+                name: 'Salles',
+                path: '/presences-eleve',
+                pro: false,
+            },
+            {
+                name: 'Enseignant',
+                path: '/presences-enseignant',
                 pro: false,
             },
         ],

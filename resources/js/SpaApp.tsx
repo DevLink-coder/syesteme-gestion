@@ -121,6 +121,10 @@ const InscriptionForm = lazy(() => import('./pages/Eleves/InscriptionForm'));
 const TarifsList = lazy(() => import('./pages/Eleves/TarifsList'));
 const DettesList = lazy(() => import('./pages/Eleves/DettesList'));
 const PresencesList = lazy(() => import('./pages/Presences/PresencesList'));
+const PresencesEleve = lazy(() => import('./pages/Presences/PresencesEleve'));
+const PresencesEnseignant = lazy(
+    () => import('./pages/Presences/PresencesEnseignant'),
+);
 const PresencesDetail = lazy(() => import('./pages/Presences/PresencesDetail'));
 const EvaluationsList = lazy(
     () => import('./pages/Evaluations/EvaluationsList'),
@@ -191,9 +195,12 @@ function TenantDataProviders({ children }: { children: ReactNode }) {
         pathname,
     );
     const needsTeachers = /^\/enseignants\/[^/]+$/.test(pathname);
-    const needsEvaluations = /^\/evaluations(\/|$)/.test(pathname);
+    const needsEvaluations = /^\/(evaluations|eleves)(\/|$)/.test(pathname);
     const needsSubjects = /^\/salles\/[^/]+$/.test(pathname);
-    const needsAttendance = /^\/presences(\/|$)/.test(pathname);
+    const needsAttendance =
+        /^\/(presences|presences-eleve|presences-enseignant|eleves)(\/|$)/.test(
+            pathname,
+        );
 
     let providers = children;
     if (needsAttendance)
@@ -369,6 +376,22 @@ function AppRoutes() {
                 />
 
                 {/* Présences */}
+                <Route
+                    path="/presences-eleve"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <PresencesEleve />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/presences-enseignant"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <PresencesEnseignant />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route
                     path="/presences"
                     element={

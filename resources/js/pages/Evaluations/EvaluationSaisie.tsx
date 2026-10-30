@@ -13,6 +13,7 @@ interface Student {
     note: number | null;
     coefficient: number | null;
     subjectName: string | null;
+    subjectId: string | null;
 }
 
 export default function EvaluationSaisie() {
@@ -44,7 +45,12 @@ export default function EvaluationSaisie() {
         void loadData();
     }, [id, getEvaluationGrades]);
 
-    const handleNoteChange = async (studentId: string, value: string) => {
+    const handleNoteChange = async (
+        studentId: string,
+        value: string,
+        subjectId: string | null,
+        subjectName: string | null,
+    ) => {
         const num = value === '' ? null : Number(value);
         if (num !== null && (!Number.isFinite(num) || num < 0 || num > 20)) {
             setError('La note doit être entre 0 et 20.');
@@ -55,7 +61,14 @@ export default function EvaluationSaisie() {
         setSaving((prev) => ({ ...prev, [studentId]: true }));
 
         try {
-            const result = await saveGrade(id!, studentId, num || 0, 1);
+            const result = await saveGrade(
+                id!,
+                studentId,
+                num || 0,
+                1,
+                subjectId,
+                subjectName || evaluation.subject,
+            );
             if (!result.ok) {
                 setError(result.error || "Erreur lors de l'enregistrement");
             } else {
@@ -128,6 +141,22 @@ export default function EvaluationSaisie() {
             )}
 
             <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+                <div className="mb-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span className="text-gray-500">Salle:</span>
+                            <span className="ml-2 font-medium text-gray-800 dark:text-white">
+                                {evaluation.salleName}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Matière:</span>
+                            <span className="ml-2 font-medium text-gray-800 dark:text-white">
+                                {evaluation.subject}
+                            </span>
+                        </div>
+                    </div>
+                </div>
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
                         <thead>
@@ -135,11 +164,17 @@ export default function EvaluationSaisie() {
                                 <th className="px-3 py-2 text-left font-medium text-gray-500">
                                     Élève
                                 </th>
-                                <th className="px-3 py-2 text-center font-medium text-gray-500">
-                                    Note
+                                <th className="px-3 py-2 text-left font-medium text-gray-500">
+                                    Salle
+                                </th>
+                                <th className="px-3 py-2 text-left font-medium text-gray-500">
+                                    Matière
                                 </th>
                                 <th className="px-3 py-2 text-center font-medium text-gray-500">
                                     Coefficient
+                                </th>
+                                <th className="px-3 py-2 text-center font-medium text-gray-500">
+                                    Note
                                 </th>
                             </tr>
                         </thead>
@@ -154,6 +189,22 @@ export default function EvaluationSaisie() {
                                             {student.name}
                                         </div>
                                     </td>
+                                    <td className="px-3 py-2">
+                                        <div className="text-gray-600 dark:text-gray-300">
+                                            {evaluation.salleName}
+                                        </div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <div className="text-gray-600 dark:text-gray-300">
+                                            {student.subjectName ||
+                                                evaluation.subject}
+                                        </div>
+                                    </td>
+                                    <td className="px-3 py-2 text-center">
+                                        <div className="text-gray-600 dark:text-gray-300">
+                                            {student.coefficient ?? 1}
+                                        </div>
+                                    </td>
                                     <td className="px-3 py-2 text-center">
                                         <Input
                                             type="number"
@@ -166,6 +217,8 @@ export default function EvaluationSaisie() {
                                                 handleNoteChange(
                                                     student.id,
                                                     e.target.value,
+                                                    student.subjectId,
+                                                    student.subjectName,
                                                 )
                                             }
                                             placeholder="—"
@@ -174,9 +227,6 @@ export default function EvaluationSaisie() {
                                             max="20"
                                             disabled={saving[student.id]}
                                         />
-                                    </td>
-                                    <td className="px-3 py-2 text-center">
-                                        {student.coefficient ?? 1}
                                     </td>
                                 </tr>
                             ))}

@@ -43,7 +43,7 @@ export default function EleveDetail() {
     } = useEnrollment();
     const { salles: ctxSalles, schoolYears: ctxYears } = useSchoolStructure();
     const { evaluations, loadEvaluations } = useEvaluations();
-    const { loadAttendance, getSalleAttendance, sallesAttendance } = useAttendance();
+    const { getSalleAttendance } = useAttendance();
     const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
 
     const salles = ctxSalles.map((s: any) => ({
@@ -113,7 +113,11 @@ export default function EleveDetail() {
                         allRecords.push(...studentRecords);
                     }
                 } catch (e) {
-                    console.error('Failed to load attendance for salle:', ins.salleId, e);
+                    console.error(
+                        'Failed to load attendance for salle:',
+                        ins.salleId,
+                        e,
+                    );
                 }
             }
             setAttendanceRecords(allRecords);
@@ -894,12 +898,13 @@ export default function EleveDetail() {
             {activeTab === 'notes' && (
                 <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
                     <h3 className="mb-3 font-semibold">Notes</h3>
-                    {evaluations.filter((ev) => ev.grades[student.id])
-                        .length === 0 ? (
+                    {evaluations.filter(
+                        (ev) => ev.grades && ev.grades[student.id],
+                    ).length === 0 ? (
                         <p className="text-sm text-gray-500">Aucune note.</p>
                     ) : (
                         evaluations
-                            .filter((ev) => ev.grades[student.id])
+                            .filter((ev) => ev.grades && ev.grades[student.id])
                             .map((ev) => (
                                 <div key={ev.id} className="mb-3">
                                     <p className="text-sm font-medium">
@@ -931,7 +936,8 @@ export default function EleveDetail() {
                                             </TableHeader>
                                             <TableBody className="divide-y">
                                                 {Object.entries(
-                                                    ev.grades[student.id] || {},
+                                                    ev.grades?.[student.id] ||
+                                                        {},
                                                 ).map(([mat, val]: any) => (
                                                     <TableRow key={mat}>
                                                         <TableCell className="py-2">
@@ -990,7 +996,10 @@ export default function EleveDetail() {
                                                 {a.date}
                                             </TableCell>
                                             <TableCell className="py-2">
-                                                {salles.find((s) => s.roomId === a.roomId)?.name || a.roomId}{' '}
+                                                {salles.find(
+                                                    (s) =>
+                                                        s.roomId === a.roomId,
+                                                )?.name || a.roomId}{' '}
                                                 •{' '}
                                                 {inscriptions.find(
                                                     (ins) =>

@@ -251,7 +251,7 @@ export default function MatieresList() {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                const message = data.message || 'Erreur lors de l\'archivage';
+                const message = data.message || "Erreur lors de l'archivage";
                 showToast(message, 'error');
                 throw new Error(message);
             }
@@ -275,7 +275,8 @@ export default function MatieresList() {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                const message = data.message || 'Erreur lors de la restauration';
+                const message =
+                    data.message || 'Erreur lors de la restauration';
                 showToast(message, 'error');
                 throw new Error(message);
             }
@@ -340,7 +341,12 @@ export default function MatieresList() {
                             variant="outline"
                             onClick={() => {
                                 setPage(1);
-                                void fetchSubjects(1, search, selectedRoom, showArchived);
+                                void fetchSubjects(
+                                    1,
+                                    search,
+                                    selectedRoom,
+                                    showArchived,
+                                );
                             }}
                         >
                             Rechercher
@@ -352,7 +358,9 @@ export default function MatieresList() {
                                 setPage(1);
                             }}
                         >
-                            {showArchived ? 'Masquer archivées' : 'Afficher archivées'}
+                            {showArchived
+                                ? 'Masquer archivées'
+                                : 'Afficher archivées'}
                         </Button>
                         <Button onClick={() => setIsCreateOpen(true)}>
                             Nouvelle matière
@@ -406,7 +414,10 @@ export default function MatieresList() {
                                                 {subj.salles &&
                                                 subj.salles.length > 0
                                                     ? subj.salles
-                                                          .map((room) => room.name)
+                                                          .map(
+                                                              (room) =>
+                                                                  room.name,
+                                                          )
                                                           .join(', ')
                                                     : 'Aucune salle'}
                                             </TableCell>
@@ -440,8 +451,12 @@ export default function MatieresList() {
                                                     {!isArchived && (
                                                         <button
                                                             onClick={() => {
-                                                                setEditing(subj);
-                                                                setEditName(subj.name);
+                                                                setEditing(
+                                                                    subj,
+                                                                );
+                                                                setEditName(
+                                                                    subj.name,
+                                                                );
                                                                 setError(null);
                                                             }}
                                                             className="rounded border px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700"
@@ -452,16 +467,20 @@ export default function MatieresList() {
                                                     {isArchived ? (
                                                         <button
                                                             onClick={() =>
-                                                                void handleRestore(subj)
+                                                                void handleRestore(
+                                                                    subj,
+                                                                )
                                                             }
-                                                            className="rounded bg-warning-50 px-2 py-1 text-xs text-warning-600 hover:bg-warning-100"
+                                                            className="bg-warning-50 text-warning-600 hover:bg-warning-100 rounded px-2 py-1 text-xs"
                                                         >
                                                             Désarchiver
                                                         </button>
                                                     ) : (
                                                         <button
                                                             onClick={() =>
-                                                                setConfirmArchive(subj)
+                                                                setConfirmArchive(
+                                                                    subj,
+                                                                )
                                                             }
                                                             className="bg-error-50 text-error-600 hover:bg-error-100 rounded px-2 py-1 text-xs"
                                                         >
@@ -638,7 +657,8 @@ export default function MatieresList() {
                     <span className="font-medium text-gray-800">
                         {confirmArchive?.name}
                     </span>{' '}
-                    la rend indisponible dans les salles jusqu’à sa restauration.
+                    la rend indisponible dans les salles jusqu’à sa
+                    restauration.
                 </p>
                 <div className="flex justify-end gap-2">
                     <Button

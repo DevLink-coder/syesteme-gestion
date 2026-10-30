@@ -140,7 +140,9 @@ export default function EnseignantsList() {
         })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error('Impossible de charger les matières de la salle.');
+                    throw new Error(
+                        'Impossible de charger les matières de la salle.',
+                    );
                 }
                 return response.json();
             })
@@ -560,8 +562,8 @@ export default function EnseignantsList() {
             <PageBreadcrumb pageTitle="Enseignants" />
 
             <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-                <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between min-[1024px]:gap-2">
-                    <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center min-[1024px]:gap-2">
+                <div className="mb-4 flex flex-col gap-4 min-[1024px]:gap-2 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="flex min-w-0 flex-1 flex-col gap-3 min-[1024px]:gap-2 lg:flex-row lg:items-center">
                         <div className="w-full min-w-0 flex-shrink lg:max-w-[220px] xl:max-w-xs">
                             <Input
                                 placeholder="Rechercher par nom..."
@@ -619,7 +621,7 @@ export default function EnseignantsList() {
                     </div>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
-                        className="w-full shrink-0 whitespace-nowrap xl:w-auto min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs"
+                        className="w-full shrink-0 whitespace-nowrap min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs xl:w-auto"
                     >
                         Ajouter un enseignant
                     </Button>
@@ -751,7 +753,7 @@ export default function EnseignantsList() {
                                                         onClick={() =>
                                                             openTeacherEdit(t)
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Modifier
                                                     </button>
@@ -769,7 +771,7 @@ export default function EnseignantsList() {
                                                                 ? 'Vous ne pouvez pas destituer l’admin qui vous a promu.'
                                                                 : undefined
                                                         }
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap max-[802px]:inline-flex min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white disabled:dark:hover:bg-gray-800"
                                                     >
                                                         {t.is_admin
                                                             ? 'Destituer'
@@ -777,7 +779,7 @@ export default function EnseignantsList() {
                                                     </button>
                                                     <Link
                                                         to={`/enseignants/${t.id}`}
-                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                                                        className="rounded border border-gray-300 bg-white px-1 py-0.5 text-[10px] text-gray-700 transition-colors hover:bg-gray-50 max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
                                                     >
                                                         Voir
                                                     </Link>
@@ -794,7 +796,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-warning-50 text-warning-700 hover:bg-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:hover:bg-warning-500/20 dark:hover:text-warning-300 rounded px-1 py-0.5 text-[10px] transition-colors max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium"
                                                                 >
                                                                     Suspendre
                                                                 </button>
@@ -808,7 +810,7 @@ export default function EnseignantsList() {
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap"
+                                                                    className="bg-error-50 text-error-700 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20 dark:hover:text-error-300 rounded px-1 py-0.5 text-[10px] transition-colors max-[803px]:inline-flex max-[803px]:items-center max-[803px]:justify-center max-[803px]:py-px max-[803px]:whitespace-nowrap min-[1024px]:!px-3 min-[1024px]:!py-1.5 min-[1024px]:!text-xs min-[1024px]:!font-medium"
                                                                 >
                                                                     Renvoyer
                                                                 </button>

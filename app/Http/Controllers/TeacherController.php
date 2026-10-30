@@ -83,7 +83,27 @@ class TeacherController extends Controller
             ->where('teacher_id', $user->id)
             ->orderByDesc('date')
             ->orderByDesc('updated_at')
-            ->get();
+            ->get()
+            ->map(function ($attendance) {
+                $markedByName = null;
+                if ($attendance->marked_by) {
+                    $marker = TenantDB::table('users')
+                        ->where('id', $attendance->marked_by)
+                        ->whereNull('deleted_at')
+                        ->value('name');
+                    $markedByName = $marker;
+                }
+
+                return [
+                    'id' => $attendance->id,
+                    'date' => $attendance->date,
+                    'present' => $attendance->present,
+                    'marked_by' => $attendance->marked_by,
+                    'marked_by_name' => $markedByName,
+                    'updated_at' => $attendance->updated_at,
+                    'created_at' => $attendance->created_at,
+                ];
+            });
 
         $user->teaches = $teaches;
         $user->slots = $slots;

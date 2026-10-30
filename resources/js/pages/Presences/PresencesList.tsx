@@ -233,146 +233,152 @@ export default function PresencesList() {
 
             {view === 'salles' ? (
                 <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader className="border-y border-gray-100 dark:border-gray-800">
-                            <TableRow>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Salle
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Statut de l'appel
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Heure de l'appel
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Présents / Absents
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Non appelés
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
-                                    Total élèves
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-right font-medium text-gray-500"
-                                >
-                                    Action
-                                </TableCell>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                            {overview.map(
-                                ({
-                                    id,
-                                    name,
-                                    statut,
-                                    heure,
-                                    presents,
-                                    absents,
-                                    notCalled,
-                                    totalStudents,
-                                }) => (
-                                    <TableRow
-                                        key={id}
-                                        className={
-                                            statut === 'En retard'
-                                                ? 'bg-error-50/50 dark:bg-error-500/5'
-                                                : ''
-                                        }
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="border-y border-gray-100 dark:border-gray-800">
+                                <TableRow>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
                                     >
-                                        <TableCell className="py-3">
-                                            <div className="font-medium text-gray-800 dark:text-white">
-                                                {name}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="py-3">
-                                            {statut === 'Fait' && (
-                                                <Badge
-                                                    color="success"
-                                                    size="sm"
-                                                    variant="light"
+                                        Salle
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Statut de l'appel
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Heure de l'appel
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Présents / Absents
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Non appelés
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-left font-medium text-gray-500"
+                                    >
+                                        Total élèves
+                                    </TableCell>
+                                    <TableCell
+                                        isHeader
+                                        className="text-theme-xs py-3 text-right font-medium text-gray-500"
+                                    >
+                                        Action
+                                    </TableCell>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                                {overview.map(
+                                    ({
+                                        id,
+                                        name,
+                                        statut,
+                                        heure,
+                                        presents,
+                                        absents,
+                                        notCalled,
+                                        totalStudents,
+                                    }) => (
+                                        <TableRow
+                                            key={id}
+                                            className={
+                                                statut === 'En retard'
+                                                    ? 'bg-error-50/50 dark:bg-error-500/5'
+                                                    : ''
+                                            }
+                                        >
+                                            <TableCell className="py-3">
+                                                <div className="font-medium text-gray-800 dark:text-white">
+                                                    {name}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                {statut === 'Fait' && (
+                                                    <Badge
+                                                        color="success"
+                                                        size="sm"
+                                                        variant="light"
+                                                    >
+                                                        Fait
+                                                    </Badge>
+                                                )}
+                                                {statut === 'Non fait' && (
+                                                    <Badge
+                                                        color="light"
+                                                        size="sm"
+                                                    >
+                                                        Non fait
+                                                    </Badge>
+                                                )}
+                                                {statut === 'En retard' && (
+                                                    <Badge
+                                                        color="error"
+                                                        size="sm"
+                                                    >
+                                                        En retard
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm">
+                                                {heure}
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                <span className="inline-flex items-center gap-2 text-sm">
+                                                    <span className="text-success-600 font-medium">
+                                                        {presents} présents
+                                                    </span>
+                                                    <span className="text-gray-300">
+                                                        /
+                                                    </span>
+                                                    <span className="text-error-600 font-medium">
+                                                        {absents} absents
+                                                    </span>
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm text-gray-500">
+                                                {notCalled}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm text-gray-500">
+                                                {totalStudents}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-right">
+                                                <Link
+                                                    to={`/presences/${id}`}
+                                                    className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                                                 >
-                                                    Fait
-                                                </Badge>
-                                            )}
-                                            {statut === 'Non fait' && (
-                                                <Badge color="light" size="sm">
-                                                    Non fait
-                                                </Badge>
-                                            )}
-                                            {statut === 'En retard' && (
-                                                <Badge color="error" size="sm">
-                                                    En retard
-                                                </Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm">
-                                            {heure}
-                                        </TableCell>
-                                        <TableCell className="py-3">
-                                            <span className="inline-flex items-center gap-2 text-sm">
-                                                <span className="text-success-600 font-medium">
-                                                    {presents} présents
-                                                </span>
-                                                <span className="text-gray-300">
-                                                    /
-                                                </span>
-                                                <span className="text-error-600 font-medium">
-                                                    {absents} absents
-                                                </span>
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm text-gray-500">
-                                            {notCalled}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm text-gray-500">
-                                            {totalStudents}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-right">
-                                            <Link
-                                                to={`/presences/${id}`}
-                                                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                            >
-                                                Voir le détail
-                                            </Link>
-                                        </TableCell>
-                                    </TableRow>
-                                ),
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-                {overview.length === 0 && (
-                    <p className="mt-3 text-center text-sm text-gray-500">
-                        Aucune salle trouvée pour cette date.
-                    </p>
-                )}
+                                                    Voir le détail
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ),
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    {overview.length === 0 && (
+                        <p className="mt-3 text-center text-sm text-gray-500">
+                            Aucune salle trouvée pour cette date.
+                        </p>
+                    )}
                 </div>
             ) : (
                 <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
                     {teacherLoadError && (
-                        <p className="mb-3 rounded-lg border border-error-200 bg-error-50 px-3 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-500/10 dark:text-error-300">
+                        <p className="border-error-200 bg-error-50 text-error-700 dark:border-error-800 dark:bg-error-500/10 dark:text-error-300 mb-3 rounded-lg border px-3 py-2 text-sm">
                             {teacherLoadError}
                         </p>
                     )}

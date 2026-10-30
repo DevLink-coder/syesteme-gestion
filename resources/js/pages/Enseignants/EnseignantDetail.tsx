@@ -848,7 +848,7 @@ export default function EnseignantDetail() {
                 <h3 className="mb-3 font-semibold text-gray-800 dark:text-white">
                     Historique des présences
                 </h3>
-                {(!teacher.attendances || teacher.attendances.length === 0) ? (
+                {!teacher.attendances || teacher.attendances.length === 0 ? (
                     <p className="text-sm text-gray-500">
                         Aucune présence enregistrée.
                     </p>
@@ -884,31 +884,43 @@ export default function EnseignantDetail() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                {teacher.attendances.map((a: any, i: number) => (
-                                    <TableRow key={i}>
-                                        <TableCell className="py-3 text-sm">
-                                            {new Date(a.date).toLocaleDateString(
-                                                'fr-FR',
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="py-3">
-                                            <Badge
-                                                color={a.present ? 'success' : 'error'}
-                                                size="sm"
-                                            >
-                                                {a.present ? 'Présent' : 'Absent'}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm">
-                                            {a.marked_by || '—'}
-                                        </TableCell>
-                                        <TableCell className="py-3 text-sm">
-                                            {a.updated_at 
-                                                ? new Date(a.updated_at).toLocaleString('fr-FR')
-                                                : '—'}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {teacher.attendances.map(
+                                    (a: any, i: number) => (
+                                        <TableRow key={i}>
+                                            <TableCell className="py-3 text-sm">
+                                                {new Date(
+                                                    a.date,
+                                                ).toLocaleDateString('fr-FR')}
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                <Badge
+                                                    color={
+                                                        a.present
+                                                            ? 'success'
+                                                            : 'error'
+                                                    }
+                                                    size="sm"
+                                                >
+                                                    {a.present
+                                                        ? 'Présent'
+                                                        : 'Absent'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm">
+                                                {a.marked_by_name ||
+                                                    a.marked_by ||
+                                                    '—'}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-sm">
+                                                {a.updated_at
+                                                    ? new Date(
+                                                          a.updated_at,
+                                                      ).toLocaleString('fr-FR')
+                                                    : '—'}
+                                            </TableCell>
+                                        </TableRow>
+                                    ),
+                                )}
                             </TableBody>
                         </Table>
                     </div>

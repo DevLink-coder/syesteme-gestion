@@ -62,12 +62,42 @@ class EvaluationController extends Controller
         $evaluation = Evaluation::with(['salle', 'grades.student', 'grades.subject'])
             ->findOrFail($id);
 
+        // Group grades by student and calculate averages
+        $studentsData = collect();
+        if ($evaluation->grades->isNotEmpty()) {
+            $studentsData = $evaluation->grades->groupBy('student_id')->map(function ($grades) use ($evaluation) {
+                $student = $grades->first()->student;
+                if (! $student) {
+                    return null;
+                }
+                $rows = $grades->map(function ($grade) use ($evaluation) {
+                    return [
+                        'subject' => $grade->subject_name ?: $grade->subject?->name ?: $evaluation->subject ?: 'Matière',
+                        'note' => (float) $grade->note,
+                        'coefficient' => (float) ($grade->coefficient ?: 1),
+                    ];
+                })->values();
+                $coefficientTotal = $rows->sum('coefficient');
+                $weightedTotal = $rows->sum(fn ($row) => $row['note'] * $row['coefficient']);
+
+                return [
+                    'id' => (string) $student->id,
+                    'name' => $student->name,
+                    'salleName' => $evaluation->salle?->name,
+                    'rows' => $rows,
+                    'totalCoefficient' => $coefficientTotal,
+                    'weightedTotal' => $weightedTotal,
+                    'average' => $coefficientTotal > 0 ? round($weightedTotal / $coefficientTotal, 2) : null,
+                ];
+            })->filter()->sortBy('name')->values();
+        }
+
         $gradesData = $evaluation->grades->map(function ($grade) {
             return [
                 'id' => (string) $grade->id,
                 'studentId' => (string) $grade->student_id,
                 'studentName' => $grade->student?->name,
-                'subjectId' => (string) $grade->subject_id,
+                'subjectId' => $grade->subject_id ? (string) $grade->subject_id : null,
                 'subjectName' => $grade->subject_name,
                 'note' => (float) $grade->note,
                 'coefficient' => (float) $grade->coefficient,
@@ -88,6 +118,7 @@ class EvaluationController extends Controller
                 'status' => $evaluation->status,
                 'schoolYearId' => (string) $evaluation->school_year_id,
             ],
+            'students' => $studentsData,
             'grades' => $gradesData,
         ]);
     }
@@ -163,7 +194,7 @@ class EvaluationController extends Controller
 
         $gradesData = $evaluation->grades->keyBy('student_id');
 
-        $studentData = $students->map(function ($student) use ($gradesData) {
+        $studentData = $students->map(function ($student) use ($gradesData, $evaluation) {
             $grade = $gradesData->get($student->id);
 
             return [
@@ -171,7 +202,8 @@ class EvaluationController extends Controller
                 'name' => $student->name,
                 'note' => $grade ? (float) $grade->note : null,
                 'coefficient' => $grade ? (float) $grade->coefficient : null,
-                'subjectName' => $grade ? $grade->subject_name : null,
+                'subjectName' => $grade ? $grade->subject_name : $evaluation->subject,
+                'subjectId' => $grade ? (string) $grade->subject_id : null,
             ];
         });
 
@@ -201,14 +233,17 @@ class EvaluationController extends Controller
 
         $evaluation = Evaluation::findOrFail($evaluationId);
 
+        // Use evaluation subject if subject_name is not provided
+        $subjectName = $validated['subject_name'] ?? $evaluation->subject;
+
         $grade = Grade::updateOrCreate(
             [
                 'evaluation_id' => $evaluationId,
                 'student_id' => $validated['student_id'],
-                'subject_id' => $validated['subject_id'],
+                'subject_id' => $validated['subject_id'] ?? null,
             ],
             [
-                'subject_name' => $validated['subject_name'],
+                'subject_name' => $subjectName,
                 'note' => (float) $validated['note'],
                 'coefficient' => (float) ($validated['coefficient'] ?? 1),
                 'graded_by' => auth()->id(),

@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\Tarif;
 use App\Models\TimetableSlot;
 use App\Models\User;
+use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -138,7 +139,7 @@ class SoftDeletesTest extends TestCase
             'status' => 'active',
         ]);
         $now = now();
-        $centerId = \App\Support\TenantContext::id();
+        $centerId = TenantContext::id();
         $yearId = DB::table('school_years')->insertGetId([
             'code' => '2026-2027-archived-subject',
             'label' => '2026-2027',

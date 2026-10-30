@@ -19,6 +19,7 @@ interface Evaluation {
     nbEleves: number;
     isPending: boolean;
     schoolYearId: string;
+    grades?: Record<string, any>;
 }
 
 interface EvaluationDetail {
@@ -69,6 +70,7 @@ interface EvaluationsContextValue {
             note: number | null;
             coefficient: number | null;
             subjectName: string | null;
+            subjectId: string | null;
         }>;
     }>;
     saveGrade: (
@@ -76,6 +78,8 @@ interface EvaluationsContextValue {
         studentId: string,
         note: number,
         coefficient?: number,
+        subjectId?: string | null,
+        subjectName?: string | null,
     ) => Promise<{
         ok: boolean;
         error?: string;
@@ -204,6 +208,8 @@ export const EvaluationsProvider: React.FC<{ children: React.ReactNode }> = ({
             studentId: string,
             note: number,
             coefficient: number = 1,
+            subjectId: string | null = null,
+            subjectName: string | null = null,
         ) => {
             try {
                 const res = await fetch(
@@ -220,6 +226,8 @@ export const EvaluationsProvider: React.FC<{ children: React.ReactNode }> = ({
                             student_id: studentId,
                             note,
                             coefficient,
+                            subject_id: subjectId,
+                            subject_name: subjectName,
                         }),
                     },
                 );
