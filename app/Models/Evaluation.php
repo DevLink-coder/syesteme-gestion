@@ -31,4 +31,9 @@ class Evaluation extends Model
     {
         return $this->hasMany(Grade::class);
     }
+
+    public function schoolYear(): BelongsTo
+    {
+        return $this->belongsTo(SchoolYear::class);
+    }
 }
