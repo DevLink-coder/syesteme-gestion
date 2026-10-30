@@ -49,7 +49,7 @@ export default function EvaluationsList() {
         () =>
             sortAlphabetically(
                 evaluations,
-                (evaluation) => evaluation.salleName || evaluation.title || '',
+                (evaluation) => evaluation.title || '',
                 sortDirection,
             ),
         [evaluations, sortDirection],
@@ -181,12 +181,6 @@ export default function EvaluationsList() {
                                     isHeader
                                     className="text-theme-xs py-3 text-left font-medium text-gray-500"
                                 >
-                                    Salle
-                                </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="text-theme-xs py-3 text-left font-medium text-gray-500"
-                                >
                                     Intitulé
                                 </TableCell>
                                 <TableCell
@@ -224,9 +218,6 @@ export default function EvaluationsList() {
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {sortedEvaluations.map((ev) => (
                                 <TableRow key={ev.id}>
-                                    <TableCell className="py-3 font-medium">
-                                        {ev.salleName || '—'}
-                                    </TableCell>
                                     <TableCell className="py-3 text-sm">
                                         {ev.title || '—'}
                                     </TableCell>
