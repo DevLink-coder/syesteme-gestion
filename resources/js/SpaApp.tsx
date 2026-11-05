@@ -21,6 +21,39 @@ import { AlertModalProvider } from './context/AlertModalContext';
 import { useAuth } from './context/AuthContext';
 import SuperAdminCenters from './pages/SuperAdmin/SuperAdminCenters';
 
+// Public parent router - no basename, handles /parent/* routes
+function PublicParentRouter() {
+    return (
+        <Router>
+            <ScrollToTop />
+            <Suspense
+                fallback={
+                    <div className="p-6 text-sm text-gray-500">
+                        Chargement de la page…
+                    </div>
+                }
+            >
+                <Routes>
+                    <Route element={<ParentLayout />}>
+                        <Route
+                            path="/parent/:studentId"
+                            element={<ParentBulletin />}
+                        />
+                        <Route
+                            path="/parent/:studentId/solde"
+                            element={<ParentSolde />}
+                        />
+                        <Route
+                            path="/parent/:studentId/absences"
+                            element={<ParentAbsences />}
+                        />
+                    </Route>
+                </Routes>
+            </Suspense>
+        </Router>
+    );
+}
+
 function AuthenticatedRouter() {
     const { currentUser, isLoading } = useAuth();
     const isSuperAdminSection =
@@ -36,13 +69,10 @@ function AuthenticatedRouter() {
     const signInSlug = window.location.pathname.match(
         /^\/([a-z0-9-]+)\/(?:signin|signup)$/,
     )?.[1];
-    const publicParentSlug = window.location.pathname.match(
-        /^\/([a-z0-9-]+)\/parent\/[^/]+(?:\/(?:absences|solde))?\/?$/,
-    )?.[1];
     const slug =
         isSuperAdminSection || prefixedSuperAdminSection
             ? undefined
-            : publicParentSlug || currentUser?.centerSlug || signInSlug;
+            : currentUser?.centerSlug || signInSlug;
     const basename = slug ? `/${slug}` : undefined;
     const hasCenterPrefix = Boolean(
         slug &&
@@ -232,19 +262,6 @@ function AppRoutes() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<Navigate to="/signin" replace />} />
             <Route path="/parent-login" element={<ParentLogin />} />
-
-            {/* Espace Parent — lien sécurisé (public, accessible via token) */}
-            <Route element={<ParentLayout />}>
-                <Route path="/parent/:studentId" element={<ParentBulletin />} />
-                <Route
-                    path="/parent/:studentId/solde"
-                    element={<ParentSolde />}
-                />
-                <Route
-                    path="/parent/:studentId/absences"
-                    element={<ParentAbsences />}
-                />
-            </Route>
 
             {/* Dashboard Layout */}
             <Route element={<AppLayout />}>
@@ -513,6 +530,20 @@ function AppRoutes() {
 }
 
 export default function App() {
+    const isParentRoute = /^\/parent\/.*/.test(window.location.pathname);
+
+    if (isParentRoute) {
+        return (
+            <AuthProvider>
+                <ToastProvider>
+                    <AlertModalProvider>
+                        <PublicParentRouter />
+                    </AlertModalProvider>
+                </ToastProvider>
+            </AuthProvider>
+        );
+    }
+
     return (
         <AuthProvider>
             <ToastProvider>

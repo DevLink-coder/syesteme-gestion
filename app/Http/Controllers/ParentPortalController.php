@@ -9,7 +9,6 @@ use App\Models\Student;
 use App\Models\TimetableSlot;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ParentPortalController extends Controller
@@ -49,22 +48,21 @@ class ParentPortalController extends Controller
             ])->save();
         }
 
-        $centerSlug = DB::table('centers')
-            ->where('id', $student->center_id)
-            ->value('slug');
-        $centerPath = $centerSlug ? '/'.$centerSlug : '';
-
+        // Pour les parents, on génère l'URL sans le slug du centre
+        // pour permettre un accès direct via le routeur React sans basename
         return response()->json([
-            'url' => rtrim((string) config('app.url'), '/').$centerPath.'/parent/'.$student->code.'?token='.urlencode($plainToken),
-            'centerSlug' => $centerSlug,
-            'studentCode' => $student->code,
+            'url' => rtrim((string) config('app.url'), '/').'/parent/'.$student->code.'?token='.urlencode($plainToken),
             'expiresAt' => $student->parent_token_expires_at?->toIso8601String(),
         ])->header('Cache-Control', 'no-store, private');
     }
 
     public function createLink(Request $request, $studentId)
     {
-        $student = Student::query()->findOrFail($studentId);
+        $student = Student::query()
+            ->where(function ($query) use ($studentId) {
+                $this->applyStudentIdentifier($query, $studentId);
+            })
+            ->firstOrFail();
         $plainToken = Str::random(64);
 
         $student->forceFill([
@@ -72,13 +70,8 @@ class ParentPortalController extends Controller
             'parent_token_expires_at' => now()->addDays(30),
         ])->save();
 
-        $centerSlug = DB::table('centers')
-            ->where('id', $student->center_id)
-            ->value('slug');
-        $centerPath = $centerSlug ? '/'.$centerSlug : '';
-
         return response()->json([
-            'url' => rtrim((string) config('app.url'), '/').$centerPath.'/parent/'.$student->code.'?token='.urlencode($plainToken),
+            'url' => rtrim((string) config('app.url'), '/').'/parent/'.$student->code.'?token='.urlencode($plainToken),
             'expiresAt' => $student->parent_token_expires_at?->toIso8601String(),
         ])->header('Cache-Control', 'no-store, private');
     }
@@ -90,7 +83,7 @@ class ParentPortalController extends Controller
 
         $student = Student::query()
             ->where(function ($query) use ($studentId) {
-                $query->whereKey($studentId)->orWhere('code', $studentId);
+                $this->applyStudentIdentifier($query, $studentId);
             })
             ->where('parent_token', hash('sha256', $plainToken))
             ->where('parent_token_expires_at', '>', now())
@@ -220,6 +213,17 @@ class ParentPortalController extends Controller
             'Referrer-Policy' => 'no-referrer',
             'X-Robots-Tag' => 'noindex, nofollow, noarchive',
         ]);
+    }
+
+    private function applyStudentIdentifier($query, $studentId): void
+    {
+        if (ctype_digit((string) $studentId)) {
+            $query->whereKey($studentId)->orWhere('code', $studentId);
+
+            return;
+        }
+
+        $query->where('code', $studentId);
     }
 
     private function accountSummary(Inscription $inscription): array
