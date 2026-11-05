@@ -7,6 +7,7 @@ use App\Models\Evaluation;
 use App\Models\Grade;
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Models\Salle;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\Subject;
@@ -14,6 +15,7 @@ use App\Models\Tarif;
 use App\Models\TimetableSlot;
 use App\Models\User;
 use App\Support\TenantContext;
+use App\Support\TenantDB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -174,5 +176,52 @@ class SoftDeletesTest extends TestCase
             ])
             ->assertStatus(409)
             ->assertJsonPath('message', 'Cette matière est archivée. Désarchivez-la avant de la réaffecter.');
+    }
+
+    public function test_room_detail_and_subject_endpoints_resolve_code_identifiers(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_admin' => true,
+            'is_teacher' => false,
+            'status' => 'active',
+        ]);
+        $year = SchoolYear::create([
+            'code' => '2026-2027-room-code',
+            'label' => '2026-2027',
+            'start_date' => '2026-09-01',
+            'end_date' => '2027-06-30',
+            'is_active' => true,
+            'is_archived' => false,
+        ]);
+        $salle = Salle::create([
+            'code' => 'salle-secondeC-2026',
+            'room_id' => 'secondeC',
+            'name' => 'Seconde C',
+            'school_year_id' => $year->id,
+            'status' => 'active',
+        ]);
+        $subject = Subject::create([
+            'name' => 'Mathématiques Salle Code',
+            'slug' => 'mathematiques-salle-code',
+        ]);
+        TenantDB::table('salle_subject')->insert([
+            'salle_id' => $salle->id,
+            'subject_id' => $subject->id,
+            'coefficient' => 2,
+            'is_optional' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/web/salles/'.$salle->code)
+            ->assertOk()
+            ->assertJsonPath('code', $salle->code);
+
+        $this->actingAs($admin)
+            ->getJson('/web/salles/'.$salle->code.'/matieres')
+            ->assertOk()
+            ->assertJsonFragment(['name' => $subject->name]);
     }
 }

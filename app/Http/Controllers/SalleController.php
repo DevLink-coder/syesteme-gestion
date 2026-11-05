@@ -34,7 +34,7 @@ class SalleController extends Controller
     public function show($id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -115,7 +115,7 @@ class SalleController extends Controller
     public function update(Request $request, $id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -185,7 +185,7 @@ class SalleController extends Controller
     public function archive(Request $request, $id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -215,11 +215,11 @@ class SalleController extends Controller
     public function unarchive(Request $request, $id)
     {
         $salle = TenantDB::table('salles')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->whereNull('deleted_at')->first();
         if (! $salle) {
             $salle = TenantDB::table('salles')->whereNotNull('deleted_at')->where(function ($q) use ($id) {
-                $q->where('id', $id)->orWhere('code', $id);
+                $this->applySalleIdentifier($q, $id);
             })->first();
         }
         if (! $salle) {
@@ -250,7 +250,7 @@ class SalleController extends Controller
     public function students($id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json([], 404);
@@ -269,7 +269,7 @@ class SalleController extends Controller
     public function matieres($id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json([], 404);
@@ -282,7 +282,7 @@ class SalleController extends Controller
     public function addMatiere(Request $request, $id)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -308,7 +308,7 @@ class SalleController extends Controller
     public function updateCoefficient(Request $request, $id, $subjectName)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -326,7 +326,7 @@ class SalleController extends Controller
     public function removeMatiere($id, $subjectName)
     {
         $salle = TenantDB::table('salles')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applySalleIdentifier($query, $id);
         })->first();
         if (! $salle) {
             return response()->json(['message' => 'Salle introuvable'], 404);
@@ -338,5 +338,16 @@ class SalleController extends Controller
         TenantDB::table('salle_subject')->where('salle_id', $salle->id)->where('subject_id', $subject->id)->delete();
 
         return response()->json(['message' => 'Matière retirée']);
+    }
+
+    private function applySalleIdentifier($query, $id): void
+    {
+        if (ctype_digit((string) $id)) {
+            $query->where('id', $id)->orWhere('code', $id);
+
+            return;
+        }
+
+        $query->where('code', $id);
     }
 }
