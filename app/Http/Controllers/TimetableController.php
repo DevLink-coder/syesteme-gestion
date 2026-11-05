@@ -228,7 +228,7 @@ class TimetableController extends Controller
         if (! $slot) {
             return response()->json(['message' => 'Introuvable'], 404);
         }
-        TimetableSlot::query()->whereKey($id)->delete();
+        TimetableSlot::query()->whereKey($slot->id)->delete();
 
         TenantDB::table('audit_logs')->insert([
             'code' => 'audit-'.Str::random(6),

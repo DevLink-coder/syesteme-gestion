@@ -60,7 +60,7 @@ class TeacherController extends Controller
         }
 
         $user = TenantDB::table('users')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })
             ->where(function ($query) {
                 $query->where('is_teacher', true)->orWhere('role', 'teacher');
@@ -220,7 +220,7 @@ class TeacherController extends Controller
         }
 
         $user = TenantDB::table('users')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })->where('role', 'teacher')->first();
         if (! $user) {
             return response()->json(['message' => 'Enseignant introuvable'], 404);
@@ -254,7 +254,7 @@ class TeacherController extends Controller
         }
 
         $user = TenantDB::table('users')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })->where('role', 'teacher')->first();
         if (! $user) {
             return response()->json(['message' => 'Enseignant introuvable'], 404);
@@ -283,7 +283,7 @@ class TeacherController extends Controller
         }
 
         $user = TenantDB::table('users')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })->where('role', 'teacher')->first();
         if (! $user) {
             return response()->json(['message' => 'Enseignant introuvable'], 404);
@@ -304,7 +304,7 @@ class TeacherController extends Controller
             ->where('status', 'active')
             ->where(fn ($query) => $query->where('is_teacher', true)->orWhere('role', 'teacher'))
             ->where(function ($query) use ($id) {
-                $query->where('id', $id)->orWhere('code', $id);
+                $this->applyUserIdentifier($query, $id);
             })
             ->first();
         if (! $user) {
@@ -326,7 +326,7 @@ class TeacherController extends Controller
         }
 
         $user = TenantDB::table('users')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })
             ->where(function ($query) {
                 $query->where('is_teacher', true)->orWhere('role', 'teacher');
@@ -429,7 +429,7 @@ class TeacherController extends Controller
         }
 
         $targetUser = TenantDB::table('users')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })->first();
         if (! $targetUser) {
             return response()->json(['message' => 'Utilisateur introuvable'], 404);
@@ -470,7 +470,7 @@ class TeacherController extends Controller
         }
 
         $targetUser = TenantDB::table('users')->whereNull('deleted_at')->where(function ($query) use ($id) {
-            $query->where('id', $id)->orWhere('code', $id);
+            $this->applyUserIdentifier($query, $id);
         })->first();
         if (! $targetUser) {
             return response()->json(['message' => 'Utilisateur introuvable'], 404);
@@ -498,6 +498,17 @@ class TeacherController extends Controller
         ]);
 
         return response()->json(['message' => 'Utilisateur destitué du rôle admin']);
+    }
+
+    private function applyUserIdentifier($query, $id): void
+    {
+        if (ctype_digit((string) $id)) {
+            $query->where('id', $id)->orWhere('code', $id);
+
+            return;
+        }
+
+        $query->where('code', $id);
     }
 
     /**
