@@ -150,6 +150,9 @@ export default function EnseignantsList() {
             .catch((error: Error) => setEditError(error.message));
     }, [editSalle, salles]);
 
+    const salleDisplayName = (roomId: string) =>
+        salles.find((s: any) => s.room_id === roomId)?.name || roomId;
+
     const allMatieres = useMemo(() => {
         const set = new Set<string>();
         teachers.forEach((t) =>
@@ -937,7 +940,7 @@ export default function EnseignantsList() {
                                     }
                                     options={matieresForSalle.map((m: any) => ({
                                         value: m.name,
-                                        label: `${m.name} (coef ${m.coefficient})`,
+                                        label: `${m.name} — ${salleDisplayName(pendingSalle)} (coef ${m.coefficient})`,
                                     }))}
                                 />
                             </div>
@@ -958,11 +961,12 @@ export default function EnseignantsList() {
                                     {pendingTeaches.map(
                                         (t: any, idx: number) => (
                                             <li
-                                                key={`${t.roomId}-${t.subject}-${idx}`}
+                                                key={`${t.room_id}-${t.subject}-${idx}`}
                                                 className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
                                             >
                                                 <span>
-                                                    {t.subject} — {t.roomId}{' '}
+                                                    {t.subject} —{' '}
+                                                    {salleDisplayName(t.room_id)}{' '}
                                                     <span className="text-xs text-gray-400">
                                                         (coef {t.coefficient})
                                                     </span>
@@ -1117,7 +1121,7 @@ export default function EnseignantsList() {
                                         )
                                         .map((subject: any) => ({
                                             value: subject.name,
-                                            label: `${subject.name} (coef ${subject.coefficient})`,
+                                            label: `${subject.name} — ${salleDisplayName(editSalle)} (coef ${subject.coefficient})`,
                                         }))}
                                     disabled={!editSalle}
                                 />
@@ -1139,7 +1143,9 @@ export default function EnseignantsList() {
                                         >
                                             <span>
                                                 {teaching.subject} —{' '}
-                                                {teaching.room_id}
+                                                {salleDisplayName(
+                                                    teaching.room_id,
+                                                )}
                                             </span>
                                             <button
                                                 type="button"
