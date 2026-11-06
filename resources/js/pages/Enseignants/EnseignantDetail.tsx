@@ -143,7 +143,7 @@ export default function EnseignantDetail() {
             't-07': 8,
             't-08': 9,
         };
-        const dbId = codeToId[teacher.id] || 2;
+        const dbId = codeToId[teacher.id] ?? teacher.id;
         const weekStr = currentWeekStart.toISOString().slice(0, 10);
         fetch(`/web/timetable?teacher_id=${dbId}&week_start=${weekStr}`, {
             credentials: 'include',
