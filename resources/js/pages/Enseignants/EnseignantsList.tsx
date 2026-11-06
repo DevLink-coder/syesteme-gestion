@@ -956,46 +956,34 @@ export default function EnseignantsList() {
                                 </p>
                                 <ul className="flex flex-col gap-2">
                                     {pendingTeaches.map(
-                                        (t: any, idx: number) => {
-                                            const salle = salles.find(
-                                                (s: any) =>
-                                                    s.room_id === t.room_id,
-                                            );
-                                            return (
-                                                <li
-                                                    key={`${t.room_id}-${t.subject}-${idx}`}
-                                                    className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-                                                >
-                                                    <span>
-                                                        {t.subject} —{' '}
-                                                        {salle?.name ||
-                                                            t.room_id}{' '}
-                                                        <span className="text-xs text-gray-400">
-                                                            (coef{' '}
-                                                            {t.coefficient})
-                                                        </span>
+                                        (t: any, idx: number) => (
+                                            <li
+                                                key={`${t.roomId}-${t.subject}-${idx}`}
+                                                className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                            >
+                                                <span>
+                                                    {t.subject} — {t.roomId}{' '}
+                                                    <span className="text-xs text-gray-400">
+                                                        (coef {t.coefficient})
                                                     </span>
-                                                    <button
-                                                        onClick={() =>
-                                                            setPendingTeaches(
-                                                                (prev) =>
-                                                                    prev.filter(
-                                                                        (
-                                                                            _,
-                                                                            i,
-                                                                        ) =>
-                                                                            i !==
-                                                                            idx,
-                                                                    ),
-                                                            )
-                                                        }
-                                                        className="text-error-600 hover:text-error-700 text-xs"
-                                                    >
-                                                        Retirer
-                                                    </button>
-                                                </li>
-                                            );
-                                        },
+                                                </span>
+                                                <button
+                                                    onClick={() =>
+                                                        setPendingTeaches(
+                                                            (prev) =>
+                                                                prev.filter(
+                                                                    (_, i) =>
+                                                                        i !==
+                                                                        idx,
+                                                                ),
+                                                        )
+                                                    }
+                                                    className="text-error-600 hover:text-error-700 text-xs"
+                                                >
+                                                    Retirer
+                                                </button>
+                                            </li>
+                                        ),
                                     )}
                                 </ul>
                             </div>
@@ -1144,49 +1132,33 @@ export default function EnseignantsList() {
                         {editTeaches.length > 0 ? (
                             <ul className="mt-3 flex max-h-[120px] flex-col gap-2 overflow-y-auto">
                                 {editTeaches.map(
-                                    (teaching: any, index: number) => {
-                                        const salle = salles.find(
-                                            (s: any) =>
-                                                s.room_id ===
-                                                teaching.room_id,
-                                        );
-                                        return (
-                                            <li
-                                                key={`${teaching.room_id}-${teaching.subject}-${index}`}
-                                                className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                    (teaching: any, index: number) => (
+                                        <li
+                                            key={`${teaching.room_id}-${teaching.subject}-${index}`}
+                                            className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                        >
+                                            <span>
+                                                {teaching.subject} —{' '}
+                                                {teaching.room_id}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditTeaches((previous) =>
+                                                        previous.filter(
+                                                            (_, itemIndex) =>
+                                                                itemIndex !==
+                                                                index,
+                                                        ),
+                                                    )
+                                                }
+                                                className="text-error-600 hover:text-error-700 text-xs"
                                             >
-                                                <span>
-                                                    {teaching.subject} —{' '}
-                                                    {salle?.name ||
-                                                        teaching.room_id}{' '}
-                                                    <span className="text-xs text-gray-400">
-                                                        (coef{' '}
-                                                        {teaching.coefficient})
-                                                    </span>
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setEditTeaches(
-                                                                (previous) =>
-                                                                    previous.filter(
-                                                                        (
-                                                                            _,
-                                                                            itemIndex,
-                                                                        ) =>
-                                                                            itemIndex !==
-                                                                            index,
-                                                                    ),
-                                                            )
-                                                        }
-                                                        className="text-error-600 hover:text-error-700 text-xs"
-                                                    >
-                                                        Retirer
-                                                    </button>
-                                                </li>
-                                            );
-                                        },
-                                    )}
+                                                Retirer
+                                            </button>
+                                        </li>
+                                    ),
+                                )}
                             </ul>
                         ) : (
                             <p className="mt-2 text-xs text-gray-500">
