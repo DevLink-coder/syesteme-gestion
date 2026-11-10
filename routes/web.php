@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentDataController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ParentPortalController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlatformAuditController;
 use App\Http\Controllers\SalleController;
 use App\Http\Controllers\SchoolYearController;
@@ -111,6 +112,8 @@ foreach ($spaRoutes as $uri => $name) {
 
 // Auth Sanctum via web (sans api.php) - token émis côté web
 Route::post('/login', [AuthController::class, 'login'])->middleware(['throttle:5,1', 'web'])->name('login');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware(['throttle:5,1', 'web'])->name('password.email');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware(['throttle:5,1', 'web'])->name('password.update');
 Route::get('/login', fn () => redirect('/signin', 302))->name('login.get'); // GET /login → 302 vers /signin (évite 405)
 Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth', 'web'])->name('logout');
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth')->name('me');

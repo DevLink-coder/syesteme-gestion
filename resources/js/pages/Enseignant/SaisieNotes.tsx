@@ -210,7 +210,7 @@ export default function SaisieNotes() {
             />
             <PageBreadcrumb pageTitle="Saisie des notes" />
 
-            <div className="rounded-2xl border bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+            <div className="rounded-2xl border bg-white p-10 dark:border-gray-700 dark:bg-gray-800 pb-30">
                 <h3 className="font-semibold text-gray-800 dark:text-white">
                     Saisie des notes
                 </h3>

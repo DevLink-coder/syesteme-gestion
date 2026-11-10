@@ -140,6 +140,17 @@ export default function SignInForm() {
                                         Rester connecté
                                     </label>
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        window.location.assign(
+                                            '/forgot-password',
+                                        )
+                                    }
+                                    className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 text-sm"
+                                >
+                                    Mot de passe oublié ?
+                                </button>
                             </div>
                             <div>
                                 <Button

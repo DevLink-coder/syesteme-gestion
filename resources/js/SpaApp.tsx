@@ -34,6 +34,10 @@ function PublicParentRouter() {
                 }
             >
                 <Routes>
+                    <Route
+                        path="/parent/choisir"
+                        element={<ParentSelectChild />}
+                    />
                     <Route element={<ParentLayout />}>
                         <Route
                             path="/parent/:studentId"
@@ -130,6 +134,12 @@ function AuthenticatedRouter() {
 }
 
 const SignIn = lazy(() => import('./pages/AuthPages/SignIn'));
+const ForgotPassword = lazy(
+    () => import('./pages/AuthPages/ForgotPassword'),
+);
+const ResetPassword = lazy(
+    () => import('./pages/AuthPages/ResetPassword'),
+);
 const ParentLogin = lazy(() => import('./pages/AuthPages/ParentLogin'));
 const NotFound = lazy(() => import('./pages/OtherPage/NotFound'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
@@ -179,6 +189,9 @@ const ParentLayout = lazy(() => import('./layout/ParentLayout'));
 const ParentBulletin = lazy(() => import('./pages/Parent/ParentBulletin'));
 const ParentSolde = lazy(() => import('./pages/Parent/ParentSolde'));
 const ParentAbsences = lazy(() => import('./pages/Parent/ParentAbsences'));
+const ParentSelectChild = lazy(
+    () => import('./pages/Parent/ParentSelectChild'),
+);
 const SuperAdminDashboard = lazy(
     () => import('./pages/SuperAdmin/SuperAdminDashboard'),
 );
@@ -260,6 +273,14 @@ function AppRoutes() {
 
             {/* Auth Layout */}
             <Route path="/signin" element={<SignIn />} />
+            <Route
+                path="/forgot-password"
+                element={<ForgotPassword />}
+            />
+            <Route
+                path="/reset-password/:token"
+                element={<ResetPassword />}
+            />
             <Route path="/signup" element={<Navigate to="/signin" replace />} />
             <Route path="/parent-login" element={<ParentLogin />} />
 

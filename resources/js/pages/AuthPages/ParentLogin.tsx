@@ -46,7 +46,19 @@ export default function ParentLogin() {
             }
 
             const data = await res.json();
-            if (data.url) {
+            const children = Array.isArray(data.children) ? data.children : [];
+
+            if (children.length > 1) {
+                // Plusieurs enfants : page de sélection du profil
+                sessionStorage.setItem(
+                    'sgcr_parent_children',
+                    JSON.stringify(children),
+                );
+                showToast('Connexion réussie. Choisissez un enfant.', 'success');
+                setTimeout(() => {
+                    window.location.href = '/parent/choisir';
+                }, 500);
+            } else if (data.url) {
                 showToast('Connexion réussie. Redirection...', 'success');
                 // Rediriger vers l'URL du lien parent
                 setTimeout(() => {

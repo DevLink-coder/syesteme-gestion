@@ -22,37 +22,40 @@ class ParentPortalController extends Controller
             return response()->json(['message' => 'Numéro WhatsApp invalide'], 422);
         }
 
-        $student = Student::query()
+        $students = Student::query()
             ->where('parent_whatsapp', 'like', '%'.$cleanNumber)
             ->whereNull('deleted_at')
-            ->first();
+            ->orderBy('name')
+            ->get();
 
-        if (! $student) {
+        if ($students->isEmpty()) {
             return response()->json(['message' => 'Aucun compte parent trouvé pour ce numéro'], 404);
         }
 
-        // Generate or refresh parent token if expired or doesn't exist
-        if (! $student->parent_token || ! $student->parent_token_expires_at || $student->parent_token_expires_at->isPast()) {
+        // Un même numéro WhatsApp peut être associé à plusieurs enfants :
+        // chaque enfant reçoit son propre lien sécurisé.
+        $expiresAt = now()->addDays(30);
+        $children = $students->map(function (Student $student) use ($expiresAt) {
             $plainToken = Str::random(64);
             $student->forceFill([
                 'parent_token' => hash('sha256', $plainToken),
-                'parent_token_expires_at' => now()->addDays(30),
+                'parent_token_expires_at' => $expiresAt,
             ])->save();
-        } else {
-            // Reuse existing token by finding it (we'll need to store the plain token somewhere or regenerate)
-            // For security, we'll regenerate to avoid storing plain tokens
-            $plainToken = Str::random(64);
-            $student->forceFill([
-                'parent_token' => hash('sha256', $plainToken),
-                'parent_token_expires_at' => now()->addDays(30),
-            ])->save();
-        }
 
-        // Pour les parents, on génère l'URL sans le slug du centre
-        // pour permettre un accès direct via le routeur React sans basename
+            // Pour les parents, on génère l'URL sans le slug du centre
+            // pour permettre un accès direct via le routeur React sans basename
+            return [
+                'code' => $student->code,
+                'name' => $student->name,
+                'language' => $student->language,
+                'url' => rtrim((string) config('app.url'), '/').'/parent/'.$student->code.'?token='.urlencode($plainToken),
+            ];
+        })->values();
+
         return response()->json([
-            'url' => rtrim((string) config('app.url'), '/').'/parent/'.$student->code.'?token='.urlencode($plainToken),
-            'expiresAt' => $student->parent_token_expires_at?->toIso8601String(),
+            'url' => $children->first()['url'] ?? null,
+            'children' => $children,
+            'expiresAt' => $expiresAt->toIso8601String(),
         ])->header('Cache-Control', 'no-store, private');
     }
 
